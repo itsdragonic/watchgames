@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watch Engine</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+        }
+
+        .rectangle {
+            position: fixed;
+            width: 352px;
+            height: 430px;
+            background: linear-gradient(to bottom, red, orange, yellow, green, blue, indigo, violet); /* Rainbow gradient */
+            border-radius: 20px;
+            top: calc(50% - 215px - 50px); /* Centered vertically with an offset */
+            left: calc(50% - 176px - 50px); /* Centered horizontally with an offset */
+            transform: translate(0, 0); /* No translation needed since offsets are manually added */
+        }
+
+
+        .circle {
+            position: fixed; /* Keeps the circle visually in the center */
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .middle-value {
+            position: fixed;
+            color: red;
+            font-size: 16px;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="rectangle"></div>
+    <div class="circle"></div>
+    <div class="middle-value" id="middleValue"></div>
+
+    <script>
+        const circle = document.querySelector('.circle');
+        const middleValueDisplay = document.getElementById('middleValue');
+
+        let resetColorTimeout; // Timeout ID for resetting color
+
+        // Function to reset user to center
+        function resetToCenter() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
+        }
+
+        // Function to handle scroll events
+        function handleScroll() {
+            const currentScroll = window.scrollY;
+            const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+
+            // Change circle color based on scroll direction
+            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
+                circle.style.backgroundColor = 'green';
+            } else if (currentScroll < middleY - 1) {
+                circle.style.backgroundColor = 'blue';
+            }
+
+            // Reset the scroll position
+            resetToCenter();
+
+            // Reset the circle color to red after 500ms
+            clearTimeout(resetColorTimeout); // Clear previous timeout if any
+            resetColorTimeout = setTimeout(() => {
+                circle.style.backgroundColor = 'red';
+            }, 500);
+        }
+
+        // Continuously keep the user at the center
+        function continuousCentering() {
+            resetToCenter();
+            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+        }
+
+        // Add scroll event listener
+        window.onscroll = handleScroll;
+
+        // Initialize centering on page load
+        window.onload = () => {
+            resetToCenter();
+            continuousCentering();
+            middleValueDisplay.textContent = `Middle Y: ${document.body.scrollHeight / 2}`;
+        };
+    </script>
+</body>
+</html>
