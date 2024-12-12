@@ -14,13 +14,7 @@
             align-items: center;
             justify-content: center;
             height: 100vh;
-            overflow: hidden; /* Prevent scrolling */
-        }
-
-        .content-container {
-            width: 120%; /* Slightly wider than the viewport */
-            display: flex;
-            justify-content: center;
+            transform: translateX(5px); /* Shift everything to the left */
         }
 
         .button-container {
@@ -35,9 +29,9 @@
             height: 120px;
             background-color: #ff5722;
             color: white;
-            font-size: 20px;
+            font-size: 16px;
             border: none;
-            border-radius: 15px;
+            border-radius: 10px;
             cursor: pointer;
             transition: background-color 0.3s ease;
         }
@@ -54,21 +48,17 @@
             border-radius: 50%;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
         }
     </style>
 </head>
 <body>
-    <div class="content-container">
-        <div class="button-container">
-            <button class="nav-button" onclick="location.href='page1.html'">2048</button>
-            <button class="nav-button" onclick="location.href='page2.html'">Go to Page 2</button>
-            <button class="nav-button" onclick="location.href='page3.html'">Go to Page 3</button>
-            <button class="nav-button" onclick="location.href='page4.html'">Go to Page 4</button>
-            <button class="nav-button" onclick="location.href='page5.html'">Go to Page 5</button>
-            <button class="nav-button" onclick="location.href='page6.html'">Go to Page 6</button>
-        </div>
+    <div class="button-container">
+        <button class="nav-button" onclick="location.href='/games/2048.html'">2048</button>
+        <button class="nav-button" onclick="location.href='page2.html'">Go to Page 2</button>
+        <button class="nav-button" onclick="location.href='page3.html'">Go to Page 3</button>
+        <button class="nav-button" onclick="location.href='page4.html'">Go to Page 4</button>
+        <button class="nav-button" onclick="location.href='page5.html'">Go to Page 5</button>
+        <button class="nav-button" onclick="location.href='page6.html'">Go to Page 6</button>
     </div>
-    <div class="circle"></div>
 </body>
 </html>
