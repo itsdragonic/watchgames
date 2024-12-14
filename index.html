@@ -131,6 +131,42 @@
 
         // Start the game loop
         gameLoop();
+      
+      // custom scrolling
+      function resetToCenter() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
+        }
+
+        // Function to handle scroll events
+        function handleScroll() {
+            const currentScroll = window.scrollY;
+            const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+
+            // Change circle color based on scroll direction
+            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
+                rightPaddle.y += PADDLE_SPEED;
+            } else if (currentScroll < middleY - 1) {
+                rightPaddle.y -= PADDLE_SPEED;
+            }
+
+            // Reset the scroll position
+            resetToCenter();
+        }
+
+        // Continuously keep the user at the center
+        function continuousCentering() {
+            resetToCenter();
+            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+        }
+
+        // Add scroll event listener
+        window.onscroll = handleScroll;
+
+        // Initialize centering on page load
+        window.onload = () => {
+            resetToCenter();
+            continuousCentering();
+        };
     </script>
 </body>
 </html>
