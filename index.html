@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scroll Interaction</title>
+    <title>Watch Engine</title>
     <style>
         body {
             margin: 0;
+            height: 2000px; /* only add this when working on computer */
             background-color: #121212;
             font-family: Arial, sans-serif;
         }
@@ -17,13 +18,14 @@
             height: 70px;
             background: white;
             border-radius: 20px;
-            top: 50%;
-            left: calc(50% - 50px);
-            transform: translateY(-50%);
+            top: 100px; /* Centered vertically with an offset */
+            left: calc(50% - 50px); /* Centered horizontally with an offset */
+            transform: translate(0, 0); /* No translation needed since offsets are manually added */
         }
 
+
         .circle {
-            position: fixed;
+            position: fixed; /* Keeps the circle visually in the center */
             width: 50px;
             height: 50px;
             background-color: red;
@@ -32,39 +34,75 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
+
+        .middle-value {
+            position: fixed;
+            color: red;
+            font-size: 16px;
+            top: 10px;
+            left: 10px;
+        }
     </style>
 </head>
 <body>
-    <div class="rectangle" id="rectangle"></div>
-    <div class="circle" id="circle"></div>
+    <div class="rectangle"></div>
+    <div class="circle"></div>
+    <div class="middle-value" id="middleValue"></div>
 
     <script>
-        const rectangle = document.getElementById('rectangle');
-        const circle = document.getElementById('circle');
+        var rectangle = document.querySelector('.rectangle');
+        var circle = document.querySelector('.circle');
+        var middleValueDisplay = document.getElementById('middleValue');
 
-        let rectangleOffset = 0; // Tracks the rectangle's offset from its initial position
+        var tops = 100;
+        let resetColorTimeout; // Timeout ID for resetting color
 
-        // Function to handle mouse wheel scrolling
-        window.addEventListener('wheel', (event) => {
-            // Adjust the rectangle's position
-            rectangleOffset += event.deltaY * 0.1; // Scale the movement for smoother animation
+        // Function to reset user to center
+        function resetToCenter() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
+        }
 
-            // Update the rectangle's vertical position
-            rectangle.style.transform = `translateY(calc(-50% + ${rectangleOffset}px))`;
+        // Function to handle scroll events
+        function handleScroll() {
+            var currentScroll = window.scrollY;
+            var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
 
-            // Change the circle's color based on scroll direction
-            if (event.deltaY > 0) {
+            // Change circle color based on scroll direction
+            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
                 circle.style.backgroundColor = 'green';
-            } else {
+                tops -= 15;
+            } else if (currentScroll < middleY - 1) {
                 circle.style.backgroundColor = 'blue';
+                tops += 15;
             }
 
-            // Reset the circle's color after 500ms
-            clearTimeout(window.colorResetTimeout);
-            window.colorResetTimeout = setTimeout(() => {
+            rectangle.style.top = `${tops}px`;
+
+            // Reset the scroll position
+            resetToCenter();
+
+            // Reset the circle color to red after 500ms
+            clearTimeout(resetColorTimeout); // Clear previous timeout if any
+            resetColorTimeout = setTimeout(() => {
                 circle.style.backgroundColor = 'red';
             }, 500);
-        });
+        }
+
+        // Continuously keep the user at the center
+        function continuousCentering() {
+            resetToCenter();
+            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+        }
+
+        // Add scroll event listener
+        window.onscroll = handleScroll;
+
+        // Initialize centering on page load
+        window.onload = () => {
+            resetToCenter();
+            continuousCentering();
+            middleValueDisplay.textContent = `Debug: ${top}`;
+        };
     </script>
 </body>
 </html>
