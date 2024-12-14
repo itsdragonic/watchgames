@@ -2,171 +2,70 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pong for Apple Watch</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scroll Interaction</title>
     <style>
         body {
             margin: 0;
-            overflow: hidden;
-            background-color: black;
+            background-color: #121212;
+            font-family: Arial, sans-serif;
+            overflow: hidden; /* Prevent default scroll behavior */
         }
 
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background-color: black;
+        .rectangle {
+            position: fixed;
+            width: 30px;
+            height: 70px;
+            background: white;
+            border-radius: 20px;
+            top: 50%;
+            left: calc(50% - 50px);
+            transform: translateY(-50%);
+        }
+
+        .circle {
+            position: fixed;
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
     </style>
 </head>
 <body>
-    <canvas id="pong" width="430" height="352"></canvas>
+    <div class="rectangle" id="rectangle"></div>
+    <div class="circle" id="circle"></div>
 
     <script>
-        const canvas = document.getElementById('pong');
-        const ctx = canvas.getContext('2d');
+        const rectangle = document.getElementById('rectangle');
+        const circle = document.getElementById('circle');
 
-        // Dimensions
-        const WIDTH = canvas.width;
-        const HEIGHT = canvas.height;
+        let rectangleOffset = 0; // Tracks the rectangle's offset from its initial position
 
-        // Paddle settings
-        const PADDLE_WIDTH = 10;
-        const PADDLE_HEIGHT = 70;
-        const BALL_SIZE = 10;
-        const PADDLE_SPEED = 4;
-
-        // Paddle positions
-        const leftPaddle = { x: 10, y: HEIGHT / 2 - PADDLE_HEIGHT / 2, dy: 0 };
-        const rightPaddle = { x: WIDTH - 20, y: HEIGHT / 2 - PADDLE_HEIGHT / 2, dy: 0 };
-
-        // Ball settings
-        const ball = { x: WIDTH / 2, y: HEIGHT / 2, dx: 4, dy: 4 };
-
-        // Draw a rectangle
-        function drawRect(x, y, width, height, color = 'white') {
-            ctx.fillStyle = color;
-            ctx.fillRect(x, y, width, height);
-        }
-
-        // Draw the ball
-        function drawBall() {
-            drawRect(ball.x, ball.y, BALL_SIZE, BALL_SIZE);
-        }
-
-        // AI movement for left paddle
-        function aiMove() {
-            if (ball.y < leftPaddle.y) leftPaddle.y -= PADDLE_SPEED;
-            else if (ball.y > leftPaddle.y + PADDLE_HEIGHT) leftPaddle.y += PADDLE_SPEED;
-        }
-
-        // Ball movement and collision detection
-        function moveBall() {
-            ball.x += ball.dx;
-            ball.y += ball.dy;
-
-            // Collision with top and bottom walls
-            if (ball.y <= 0 || ball.y + BALL_SIZE >= HEIGHT) {
-                ball.dy *= -1;
-            }
-
-            // Collision with paddles
-            if (
-                ball.x <= leftPaddle.x + PADDLE_WIDTH &&
-                ball.y + BALL_SIZE >= leftPaddle.y &&
-                ball.y <= leftPaddle.y + PADDLE_HEIGHT
-            ) {
-                ball.dx *= -1;
-            }
-
-            if (
-                ball.x + BALL_SIZE >= rightPaddle.x &&
-                ball.y + BALL_SIZE >= rightPaddle.y &&
-                ball.y <= rightPaddle.y + PADDLE_HEIGHT
-            ) {
-                ball.dx *= -1;
-            }
-
-            // Reset ball position if it goes out of bounds
-            if (ball.x < 0 || ball.x > WIDTH) {
-                ball.x = WIDTH / 2;
-                ball.y = HEIGHT / 2;
-                ball.dx = 4 * (Math.random() > 0.5 ? 1 : -1);
-                ball.dy = 4 * (Math.random() > 0.5 ? 1 : -1);
-            }
-        }
-
-        // Render game elements
-        function render() {
-            ctx.clearRect(0, 0, WIDTH, HEIGHT);
-            drawRect(leftPaddle.x, leftPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
-            drawRect(rightPaddle.x, rightPaddle.y, PADDLE_WIDTH, PADDLE_HEIGHT);
-            drawBall();
-        }
-
-        // Game loop
-        function gameLoop() {
-            aiMove();
-            moveBall();
-            render();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // User controls via scroll
-        let scrollDelta = 0;
-
+        // Function to handle mouse wheel scrolling
         window.addEventListener('wheel', (event) => {
-            scrollDelta += event.deltaY;
+            // Adjust the rectangle's position
+            rectangleOffset += event.deltaY * 0.1; // Scale the movement for smoother animation
 
-            if (scrollDelta > 10) {
-                rightPaddle.y += PADDLE_SPEED;
-                scrollDelta = 0;
-            } else if (scrollDelta < -10) {
-                rightPaddle.y -= PADDLE_SPEED;
-                scrollDelta = 0;
+            // Update the rectangle's vertical position
+            rectangle.style.transform = `translateY(calc(-50% + ${rectangleOffset}px))`;
+
+            // Change the circle's color based on scroll direction
+            if (event.deltaY > 0) {
+                circle.style.backgroundColor = 'green';
+            } else {
+                circle.style.backgroundColor = 'blue';
             }
 
-            // Prevent paddles from moving out of bounds
-            rightPaddle.y = Math.max(0, Math.min(HEIGHT - PADDLE_HEIGHT, rightPaddle.y));
+            // Reset the circle's color after 500ms
+            clearTimeout(window.colorResetTimeout);
+            window.colorResetTimeout = setTimeout(() => {
+                circle.style.backgroundColor = 'red';
+            }, 500);
         });
-
-        // Start the game loop
-        gameLoop();
-      
-      // custom scrolling
-      function resetToCenter() {
-            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
-        }
-
-        // Function to handle scroll events
-        function handleScroll() {
-            const currentScroll = window.scrollY;
-            const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
-
-            // Change circle color based on scroll direction
-            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
-                rightPaddle.y += PADDLE_SPEED;
-            } else if (currentScroll < middleY - 1) {
-                rightPaddle.y -= PADDLE_SPEED;
-            }
-
-            // Reset the scroll position
-            resetToCenter();
-        }
-
-        // Continuously keep the user at the center
-        function continuousCentering() {
-            resetToCenter();
-            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
-        }
-
-        // Add scroll event listener
-        window.onscroll = handleScroll;
-
-        // Initialize centering on page load
-        window.onload = () => {
-            resetToCenter();
-            continuousCentering();
-        };
     </script>
 </body>
 </html>
