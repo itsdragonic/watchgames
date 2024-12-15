@@ -22,14 +22,12 @@
 
         .paddle-left {
             left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 100px;
         }
 
         .paddle-right {
             right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
+            top: 100px;
         }
 
         .ball {
@@ -38,9 +36,8 @@
             height: 20px;
             background-color: red;
             border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 176px;
+            left: 215px;
         }
     </style>
 </head>
@@ -56,22 +53,26 @@
 
         const gameWidth = 430;
         const gameHeight = 352;
-        const paddleSpeed = 6;
+        const paddleSpeed = 3;
         const ballSpeed = 4;
 
-        let ballX = gameWidth / 2;
-        let ballY = gameHeight / 2;
+        let ballX = gameWidth / 2 - 10;
+        let ballY = gameHeight / 2 - 10;
         let ballDX = ballSpeed;
         let ballDY = ballSpeed;
 
-        let rightPaddleY = gameHeight / 2 - 30;
-        let leftPaddleY = gameHeight / 2 - 30;
+        let rightPaddleY = 100;
+        let leftPaddleY = 100;
 
-        // Move paddle with scroll
+        // Move paddle with scroll (right paddle only)
         function handleScroll() {
             let scrollY = window.scrollY;
             let maxScroll = document.body.scrollHeight - window.innerHeight;
-            rightPaddleY += (scrollY - maxScroll / 2) * 0.1; // Adjust the scroll sensitivity
+            if (scrollY > maxScroll / 2) {
+                rightPaddleY -= 15;
+            } else if (scrollY < maxScroll / 2) {
+                rightPaddleY += 15;
+            }
             rightPaddleY = Math.max(0, Math.min(gameHeight - 60, rightPaddleY));
             paddleRight.style.top = `${rightPaddleY}px`;
             window.scrollTo(0, maxScroll / 2);
@@ -119,8 +120,8 @@
 
             // Ball out of bounds (reset)
             if (ballX <= 0 || ballX >= gameWidth - 20) {
-                ballX = gameWidth / 2;
-                ballY = gameHeight / 2;
+                ballX = gameWidth / 2 - 10;
+                ballY = gameHeight / 2 - 10;
                 ballDX *= -1; // Reverse direction
             }
 
