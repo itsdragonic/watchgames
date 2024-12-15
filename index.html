@@ -7,7 +7,7 @@
     <style>
         body {
             margin: 0;
-            height: 1000px; /* only add this when working on computer */
+            height: 700px; /* only add this when working on computer */
             background-color: #fff;
             font-family: Arial, sans-serif;
         }
@@ -68,7 +68,7 @@
             var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
 
             // Check if user has scrolled to the bottom
-            if (currentScroll >= maxScroll) {
+            if (currentScroll >= maxScroll && circle.style.backgroundColor != 'green') {
                 circle.style.backgroundColor = 'purple';
             } else if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
                 circle.style.backgroundColor = 'green';
