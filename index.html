@@ -7,7 +7,7 @@
     <style>
         body {
             margin: 0;
-            /*height: 400px;*/ /* only add this when working on computer */
+            height: 700px; /* only add this when working on computer */
             background-color: #fff;
             font-family: Arial, sans-serif;
         }
@@ -86,6 +86,7 @@
             resetColorTimeout = setTimeout(() => {
                 circle.style.backgroundColor = 'red';
             }, 500);
+            middleValueDisplay.textContent = `Debug: ${tops}`;
         }
 
         // Continuously keep the user at the center
@@ -101,7 +102,6 @@
         window.onload = () => {
             resetToCenter();
             continuousCentering();
-            middleValueDisplay.textContent = `Debug: ${tops}`;
         };
     </script>
 </body>
