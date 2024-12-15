@@ -2,78 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Apple Watch Crown Debug</title>
+  <meta name="viewport" content="width=430, initial-scale=1.0">
+  <title>Fixed Shapes Scroll</title>
   <style>
+    /* Ensure the body has the exact mobile dimensions */
     body {
-      font-family: Arial, sans-serif;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
       margin: 0;
-      background-color: #f0f0f0;
-      overflow: hidden; /* Disable native scrolling */
+      padding: 0;
+      width: 430px;
+      height: 1000px;
+      overflow: auto;
+      position: relative;
     }
-    #debug {
-      background: #333;
-      color: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      font-size: 16px;
-      text-align: center;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-      max-width: 80%;
-      word-wrap: break-word;
+
+    /* Background content to enable scrolling */
+    .content {
+      width: 100%;
+      height: 2000px; /* Longer than the viewport to allow scrolling */
+      background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
     }
+
+    /* Shapes */
+    .shape {
+      width: 50px;
+      height: 50px;
+      position: fixed; /* Fixed positioning to counter scrolling */
+      border-radius: 50%;
+      background-color: rgba(255, 99, 71, 0.8); /* Semi-transparent red */
+    }
+
+    /* Randomly clustered shapes around the center */
+    .shape:nth-child(1) { top: 45%; left: 45%; }
+    .shape:nth-child(2) { top: 47%; left: 48%; background-color: rgba(54, 162, 235, 0.8); }
+    .shape:nth-child(3) { top: 50%; left: 42%; background-color: rgba(75, 192, 192, 0.8); }
+    .shape:nth-child(4) { top: 52%; left: 50%; background-color: rgba(255, 206, 86, 0.8); }
+    .shape:nth-child(5) { top: 48%; left: 46%; background-color: rgba(153, 102, 255, 0.8); }
   </style>
 </head>
 <body>
-  <div id="debug">Waiting for input...</div>
-  
+
+  <div class="content">
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+    <div class="shape"></div>
+  </div>
+
   <script>
-    const debug = document.getElementById('debug');
+    // To simulate the effect of scrolling without moving shapes
+    const shapes = document.querySelectorAll('.shape');
+    let lastScrollY = window.scrollY;
 
-    // Function to log and display debug messages
-    function updateDebug(message) {
-      debug.textContent = message;
-      console.log(message); // Log to console for additional debugging
-    }
-
-    // Monitor all relevant events
-    function setupListeners() {
-      // Pointer and touch events
-      window.addEventListener('touchstart', () => updateDebug('Touchstart detected'));
-      window.addEventListener('touchmove', () => updateDebug('Touchmove detected'), { passive: false });
-      window.addEventListener('touchend', () => updateDebug('Touchend detected'));
-
-      // Mouse and wheel events
-      window.addEventListener('mousemove', () => updateDebug('Mousemove detected'));
-      window.addEventListener('mousedown', () => updateDebug('Mousedown detected'));
-      window.addEventListener('mouseup', () => updateDebug('Mouseup detected'));
-      window.addEventListener('wheel', (event) => {
-        event.preventDefault(); // Prevent default scrolling
-        updateDebug(`Wheel event detected: deltaY = ${event.deltaY}, deltaX = ${event.deltaX}`);
-      }, { passive: false });
-
-      // Scroll tracking (to capture indirect scrolling)
-      let lastScroll = window.scrollY;
-      setInterval(() => {
-        const currentScroll = window.scrollY;
-        if (currentScroll !== lastScroll) {
-          updateDebug(`Scroll detected: scrollY = ${currentScroll}`);
-          lastScroll = currentScroll;
-        }
-      }, 50);
-
-      // Key events (if crown generates keypresses)
-      window.addEventListener('keydown', (event) => {
-        updateDebug(`Keydown detected: ${event.key}`);
+    // Update the position of shapes relative to scroll
+    window.addEventListener('scroll', () => {
+      const deltaY = window.scrollY - lastScrollY;
+      shapes.forEach(shape => {
+        const top = parseFloat(shape.style.top);
+        shape.style.top = `calc(${top}% - ${deltaY}px)`;
       });
-    }
-
-    // Initialize event listeners
-    setupListeners();
+      lastScrollY = window.scrollY;
+    });
   </script>
+
 </body>
 </html>
