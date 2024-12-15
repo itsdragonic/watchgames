@@ -1,108 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Watch Engine</title>
-    <style>
-        body {
-            margin: 0;
-            height: 700px; /* only add this when working on computer */
-            background-color: #fff;
-            font-family: Arial, sans-serif;
-        }
-
-        .rectangle {
-            position: fixed;
-            width: 30px;
-            height: 70px;
-            background: #000;
-            border-radius: 20px;
-            top: 100px; /* Centered vertically with an offset */
-            left: calc(50% - 50px); /* Centered horizontally with an offset */
-            transform: translate(0, 0); /* No translation needed since offsets are manually added */
-        }
-
-
-        .circle {
-            position: fixed; /* Keeps the circle visually in the center */
-            width: 50px;
-            height: 50px;
-            background-color: red;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .middle-value {
-            position: fixed;
-            color: red;
-            font-size: 16px;
-            top: 10px;
-            left: 10px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Apple Watch Crown Debug</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+    #debug {
+      background: #333;
+      color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 18px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+  </style>
 </head>
 <body>
-    <div class="rectangle"></div>
-    <div class="circle"></div>
-    <div class="middle-value" id="middleValue"></div>
+  <div id="debug">Waiting for input...</div>
+  
+  <script>
+    const debug = document.getElementById('debug');
 
-    <script>
-        var rectangle = document.querySelector('.rectangle');
-        var circle = document.querySelector('.circle');
-        var middleValueDisplay = document.getElementById('middleValue');
+    // Function to update the debug text
+    function updateDebug(message) {
+      debug.textContent = message;
+    }
 
-        var tops = 100;
-        let resetColorTimeout; // Timeout ID for resetting color
+    // Detect wheel events (scroll, Apple Watch crown, etc.)
+    window.addEventListener('wheel', (event) => {
+      updateDebug(`Wheel detected: DeltaY = ${event.deltaY}`);
+    });
 
-        // Function to reset user to center
-        function resetToCenter() {
-            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
-        }
+    // Detect touch events (mobile interactions)
+    window.addEventListener('touchstart', () => {
+      updateDebug('Touch start detected');
+    });
 
-        // Function to handle scroll events
-        function handleScroll() {
-            var currentScroll = window.scrollY;
-            var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+    window.addEventListener('touchmove', () => {
+      updateDebug('Touch move detected');
+    });
 
-            // Change circle color based on scroll direction
-            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
-                circle.style.backgroundColor = 'green';
-                tops -= 15;
-            } else if (currentScroll < middleY - 1) {
-                circle.style.backgroundColor = 'blue';
-                tops += 15;
-            }
+    window.addEventListener('touchend', () => {
+      updateDebug('Touch end detected');
+    });
 
-            rectangle.style.top = `${tops}px`;
+    // Detect mouse movements
+    window.addEventListener('mousemove', () => {
+      updateDebug('Mouse movement detected');
+    });
 
-            // Reset the scroll position
-            resetToCenter();
+    // Detect key events
+    window.addEventListener('keydown', (event) => {
+      updateDebug(`Key down: ${event.key}`);
+    });
 
-            // Reset the circle color to red after 500ms
-            clearTimeout(resetColorTimeout); // Clear previous timeout if any
-            resetColorTimeout = setTimeout(() => {
-                circle.style.backgroundColor = 'red';
-            }, 500);
-            middleValueDisplay.textContent = `Debug: ${tops}`;
-        }
+    window.addEventListener('keyup', (event) => {
+      updateDebug(`Key up: ${event.key}`);
+    });
 
-        // Continuously keep the user at the center
-        function continuousCentering() {
-            resetToCenter();
-            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
-        }
-
-        // Add scroll event listener
-        window.onscroll = handleScroll;
-
-        // Initialize centering on page load
-        window.onload = () => {
-            resetToCenter();
-            continuousCentering();
-        };
-    </script>
+    // Detect Apple Watch crown behavior
+    // (Apple Watch crown is generally detected as repeated wheel events)
+    let crownTimeout;
+    window.addEventListener('wheel', (event) => {
+      if (Math.abs(event.deltaY) > 0) {
+        updateDebug(`Apple Watch Crown (wheel) event: DeltaY = ${event.deltaY}`);
+        clearTimeout(crownTimeout);
+        crownTimeout = setTimeout(() => {
+          updateDebug('No crown input detected recently');
+        }, 500); // Reset after 500ms of no crown interaction
+      }
+    });
+  </script>
 </body>
 </html>
