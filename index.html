@@ -23,7 +23,6 @@
             transform: translate(0, 0); /* No translation needed since offsets are manually added */
         }
 
-
         .circle {
             position: fixed; /* Keeps the circle visually in the center */
             width: 50px;
@@ -65,10 +64,13 @@
         // Function to handle scroll events
         function handleScroll() {
             var currentScroll = window.scrollY;
+            var maxScroll = document.body.scrollHeight - window.innerHeight; // Maximum scroll position
             var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
 
-            // Change circle color based on scroll direction
-            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
+            // Check if user has scrolled to the bottom
+            if (currentScroll >= maxScroll) {
+                circle.style.backgroundColor = 'purple';
+            } else if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
                 circle.style.backgroundColor = 'green';
                 tops -= 15;
             } else if (currentScroll < middleY - 1) {
@@ -81,10 +83,12 @@
             // Reset the scroll position
             resetToCenter();
 
-            // Reset the circle color to red after 500ms
+            // Reset the circle color to red after 500ms, unless it's purple
             clearTimeout(resetColorTimeout); // Clear previous timeout if any
             resetColorTimeout = setTimeout(() => {
-                circle.style.backgroundColor = 'red';
+                if (circle.style.backgroundColor !== 'purple') {
+                    circle.style.backgroundColor = 'red';
+                }
             }, 500);
             middleValueDisplay.textContent = `Debug: ${tops}`;
         }
