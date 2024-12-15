@@ -68,9 +68,9 @@
             var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
 
             // Check if user has scrolled to the bottom
-            if (currentScroll >= maxScroll && circle.style.backgroundColor == 'red') {
+            if (currentScroll >= maxScroll) {
                 circle.style.backgroundColor = 'purple';
-            } else if (currentScroll > middleY + 1 && circle.style.backgroundColor != 'purple') { // Allow slight buffer to detect proper scrolling direction
+            } else if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
                 circle.style.backgroundColor = 'green';
                 tops -= 15;
             } else if (currentScroll < middleY - 1) {
