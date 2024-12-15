@@ -3,53 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pong Game</title>
+    <title>Watch Engine</title>
     <style>
         body {
             margin: 0;
+            height: 800px; /* make width much bigger when working on computer */
             background-color: #000;
             font-family: Arial, sans-serif;
-            overflow: hidden; /* Prevent scrolling */
         }
 
-        .paddle {
-            position: absolute;
+        .rectangle {
+            position: fixed;
             width: 20px;
             height: 60px;
             background: #fff;
-            border-radius: 10px;
+            border-radius: 20px;
+            transform: translate(0, 0); /* No translation needed since offsets are manually added */
         }
 
-        .paddle-left {
-            left: 20px;
-            top: 100px;
+        #player {
+            top: 100px; /* Centered vertically with an offset */
+            left: calc(85% - 20px); /* Centered horizontally with an offset */
         }
 
-        .paddle-right {
-            right: 20px;
-            top: 100px;
+        #ai {
+            top: 100px; /* Centered vertically with an offset */
+            left: calc(15% - 20px); /* Centered horizontally with an offset */
         }
 
-        .ball {
-            position: absolute;
-            width: 20px;
-            height: 20px;
+        .circle {
+            position: fixed; /* Keeps the circle visually in the center */
+            width: 30px;
+            height: 30px;
             background-color: red;
             border-radius: 50%;
-            top: 176px;
-            left: 215px;
+            top: 55%;
+            left: 45%;
+            transform: translate(-50%, -50%);
+        }
+
+        .middle-value {
+            position: fixed;
+            color: red;
+            font-size: 16px;
+            top: 20%;
+            left: 10px;
         }
     </style>
 </head>
 <body>
-    <div class="paddle paddle-left"></div>
-    <div class="paddle paddle-right"></div>
-    <div class="ball"></div>
+    <div id="player" class="rectangle"></div>
+    <div id="ai" class="rectangle"></div>
+    <div class="circle"></div>
+    <div class="middle-value" id="middleValue"></div>
 
     <script>
-        const ball = document.querySelector('.ball');
-        const paddleLeft = document.querySelector('.paddle-left');
-        const paddleRight = document.querySelector('.paddle-right');
+        const ball = document.querySelector('.circle');
+        const paddleLeft = document.getElementById('ai');
+        const paddleRight = document.getElementById('player');
 
         const gameWidth = 430;
         const gameHeight = 352;
@@ -63,84 +74,63 @@
 
         let rightPaddleY = 100;
         let leftPaddleY = 100;
+        
+        
+        var rectangle = document.querySelector('.rectangle');
+        var circle = document.querySelector('.circle');
+        var middleValueDisplay = document.getElementById('middleValue');
 
-        // Move paddle with scroll (right paddle only)
-        function handleScroll() {
-            let scrollY = window.scrollY;
-            let maxScroll = document.body.scrollHeight - window.innerHeight;
-            if (scrollY > maxScroll / 2) {
-                rightPaddleY -= 15;
-            } else if (scrollY < maxScroll / 2) {
-                rightPaddleY += 15;
-            }
-            rightPaddleY = Math.max(0, Math.min(gameHeight - 60, rightPaddleY));
-            paddleRight.style.top = `${rightPaddleY}px`;
-            window.scrollTo(0, maxScroll / 2);
+        var tops = 100;
+        let resetColorTimeout; // Timeout ID for resetting color
+
+        // Function to reset user to center
+        function resetToCenter() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
         }
 
+        // Function to handle scroll events
+        function handleScroll() {
+            var currentScroll = window.scrollY;
+            var maxScroll = document.body.scrollHeight - window.innerHeight; // Maximum scroll position
+            var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+
+            // Check if user has scrolled to the bottom
+            if (currentScroll >= maxScroll) { // for special action button
+                circle.style.backgroundColor = 'purple';
+            } else if (currentScroll > middleY + 1) { // for movements down
+                circle.style.backgroundColor = 'green';
+                tops -= 15;
+            } else if (currentScroll < middleY - 1) { // for movements up
+                circle.style.backgroundColor = 'blue';
+                tops += 15;
+            }
+
+            rectangle.style.top = `${tops}px`;
+
+            // Reset the scroll position
+            resetToCenter();
+
+            // Reset the circle color to red after 500ms, unless it's purple
+            clearTimeout(resetColorTimeout); // Clear previous timeout if any
+            resetColorTimeout = setTimeout(() => {
+                circle.style.backgroundColor = 'red';
+            }, 500);
+            middleValueDisplay.textContent = `Debug: ${tops}`;
+        }
+
+        // Continuously keep the user at the center
+        function continuousCentering() {
+            resetToCenter();
+            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+        }
+
+        // Add scroll event listener
         window.onscroll = handleScroll;
 
-        // AI paddle follows the ball
-        function moveAIPaddle() {
-            if (ballY < leftPaddleY + 30) {
-                leftPaddleY -= paddleSpeed;
-            } else if (ballY > leftPaddleY + 30) {
-                leftPaddleY += paddleSpeed;
-            }
-            leftPaddleY = Math.max(0, Math.min(gameHeight - 60, leftPaddleY));
-            paddleLeft.style.top = `${leftPaddleY}px`;
-        }
-
-        // Ball movement and collision detection
-        function moveBall() {
-            ballX += ballDX;
-            ballY += ballDY;
-
-            // Ball collision with top and bottom walls
-            if (ballY <= 0 || ballY >= gameHeight - 20) {
-                ballDY *= -1;
-            }
-
-            // Ball collision with paddles
-            if (
-                ballX <= 40 &&
-                ballY + 20 >= leftPaddleY &&
-                ballY <= leftPaddleY + 60
-            ) {
-                ballDX *= -1;
-            }
-
-            if (
-                ballX >= gameWidth - 60 &&
-                ballY + 20 >= rightPaddleY &&
-                ballY <= rightPaddleY + 60
-            ) {
-                ballDX *= -1;
-            }
-
-            // Ball out of bounds (reset)
-            if (ballX <= 0 || ballX >= gameWidth - 20) {
-                ballX = gameWidth / 2 - 10;
-                ballY = gameHeight / 2 - 10;
-                ballDX *= -1; // Reverse direction
-            }
-
-            ball.style.left = `${ballX}px`;
-            ball.style.top = `${ballY}px`;
-        }
-
-        // Game loop
-        function gameLoop() {
-            moveAIPaddle();
-            moveBall();
-            requestAnimationFrame(gameLoop);
-        }
-
-        // Initialize game
+        // Initialize centering on page load
         window.onload = () => {
-            const maxScroll = document.body.scrollHeight - window.innerHeight;
-            window.scrollTo(0, maxScroll / 2);
-            gameLoop();
+            resetToCenter();
+            continuousCentering();
         };
     </script>
 </body>
