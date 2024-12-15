@@ -1,76 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=430, initial-scale=1.0">
-  <title>Fixed Shapes Scroll</title>
-  <style>
-    /* Ensure the body has the exact mobile dimensions */
-    body {
-      margin: 0;
-      padding: 0;
-      width: 430px;
-      height: 1000px;
-      overflow: auto;
-      position: relative;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watch Engine</title>
+    <style>
+        body {
+            margin: 0;
+            height: 700px; /* only add this when working on computer */
+            background-color: #fff;
+            font-family: Arial, sans-serif;
+        }
 
-    /* Background content to enable scrolling */
-    .content {
-      width: 100%;
-      height: 3000px; /* Longer than the viewport to allow scrolling */
-      background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
-    }
+        .rectangle {
+            position: fixed;
+            width: 30px;
+            height: 70px;
+            background: #000;
+            border-radius: 20px;
+            top: 100px; /* Centered vertically with an offset */
+            left: calc(50% - 50px); /* Centered horizontally with an offset */
+            transform: translate(0, 0); /* No translation needed since offsets are manually added */
+        }
 
-    /* Shapes */
-    .shape {
-      width: 50px;
-      height: 50px;
-      position: fixed; /* Fixed positioning to counter scrolling */
-      border-radius: 50%;
-      background-color: rgba(255, 99, 71, 0.8); /* Semi-transparent red */
-    }
 
-    /* Randomly clustered shapes around the center */
-    .shape:nth-child(1) { top: 45%; left: 45%; }
-    .shape:nth-child(2) { top: 47%; left: 48%; background-color: rgba(54, 162, 235, 0.8); }
-    .shape:nth-child(3) { top: 50%; left: 42%; background-color: rgba(75, 192, 192, 0.8); }
-    .shape:nth-child(4) { top: 52%; left: 50%; background-color: rgba(255, 206, 86, 0.8); }
-    .shape:nth-child(5) { top: 48%; left: 46%; background-color: rgba(153, 102, 255, 0.8); }
-  </style>
+        .circle {
+            position: fixed; /* Keeps the circle visually in the center */
+            width: 50px;
+            height: 50px;
+            background-color: red;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .middle-value {
+            position: fixed;
+            color: red;
+            font-size: 16px;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
 </head>
 <body>
+    <div class="rectangle"></div>
+    <div class="circle"></div>
+    <div class="middle-value" id="middleValue"></div>
 
-  <div class="content">
-    <div class="shape"></div>
-    <div class="shape"></div>
-    <div class="shape"></div>
-    <div class="shape"></div>
-    <div class="shape"></div>
-  </div>
+    <script>
+        var rectangle = document.querySelector('.rectangle');
+        var circle = document.querySelector('.circle');
+        var middleValueDisplay = document.getElementById('middleValue');
 
-  <script>
-    // To simulate the effect of scrolling without moving shapes
-    const shapes = document.querySelectorAll('.shape');
-    let lastScrollY = window.scrollY;
+        var tops = 100;
+        let resetColorTimeout; // Timeout ID for resetting color
 
-    // Update the position of shapes relative to scroll
-    window.addEventListener('scroll', () => {
-      const deltaY = window.scrollY - lastScrollY;
-
-      shapes.forEach(shape => {
-        const top = parseFloat(shape.style.top);
-
-        if (deltaY > 0) { // Scrolling down
-          shape.style.top = `calc(${top}% - ${deltaY}px)`;
-        } else { // Scrolling up
-          shape.style.top = `calc(${top}% - ${deltaY / 2}px)`;
+        // Function to reset user to center
+        function resetToCenter() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
         }
-      });
 
-      lastScrollY = window.scrollY;
-    });
-  </script>
+        // Function to handle scroll events
+        function handleScroll() {
+            var currentScroll = window.scrollY;
+            var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
 
+            // Change circle color based on scroll direction
+            if (currentScroll > middleY + 1) { // Allow slight buffer to detect proper scrolling direction
+                circle.style.backgroundColor = 'green';
+                tops -= 15;
+            } else if (currentScroll < middleY - 1) {
+                circle.style.backgroundColor = 'blue';
+                tops += 15;
+            }
+
+            rectangle.style.top = `${tops}px`;
+
+            // Reset the scroll position
+            resetToCenter();
+
+            // Reset the circle color to red after 500ms
+            clearTimeout(resetColorTimeout); // Clear previous timeout if any
+            resetColorTimeout = setTimeout(() => {
+                circle.style.backgroundColor = 'red';
+            }, 500);
+            middleValueDisplay.textContent = `Debug: ${tops}`;
+        }
+
+        // Continuously keep the user at the center
+        function continuousCentering() {
+            resetToCenter();
+            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+        }
+
+        // Add scroll event listener
+        window.onscroll = handleScroll;
+
+        // Initialize centering on page load
+        window.onload = () => {
+            resetToCenter();
+            continuousCentering();
+        };
+    </script>
 </body>
 </html>
