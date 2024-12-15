@@ -13,6 +13,7 @@
       height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
+      overflow: hidden; /* Prevent native scrolling */
     }
     #debug {
       background: #333;
@@ -36,48 +37,37 @@
       debug.textContent = message;
     }
 
-    // Detect wheel events (scroll, Apple Watch crown, etc.)
+    // Detect wheel events and block default scrolling
     window.addEventListener('wheel', (event) => {
-      updateDebug(`Wheel detected: DeltaY = ${event.deltaY}`);
-    });
+      // Prevent the default page scroll
+      event.preventDefault();
 
-    // Detect touch events (mobile interactions)
+      // Detect and log the crown movement
+      const deltaY = event.deltaY;
+      if (deltaY !== 0) {
+        updateDebug(`Wheel/Crown event detected: DeltaY = ${deltaY}`);
+      }
+    }, { passive: false }); // Use passive: false to prevent scrolling
+
+    // Detect touch events (for mobile devices)
     window.addEventListener('touchstart', () => {
       updateDebug('Touch start detected');
     });
 
-    window.addEventListener('touchmove', () => {
+    window.addEventListener('touchmove', (event) => {
+      event.preventDefault(); // Prevent native scrolling
       updateDebug('Touch move detected');
-    });
+    }, { passive: false });
 
     window.addEventListener('touchend', () => {
       updateDebug('Touch end detected');
     });
 
-    // Detect mouse movements
-    window.addEventListener('mousemove', () => {
-      updateDebug('Mouse movement detected');
-    });
-
-    // Detect key events
+    // Prevent unintended vertical scroll caused by keypress
     window.addEventListener('keydown', (event) => {
-      updateDebug(`Key down: ${event.key}`);
-    });
-
-    window.addEventListener('keyup', (event) => {
-      updateDebug(`Key up: ${event.key}`);
-    });
-
-    // Detect Apple Watch crown behavior
-    // (Apple Watch crown is generally detected as repeated wheel events)
-    let crownTimeout;
-    window.addEventListener('wheel', (event) => {
-      if (Math.abs(event.deltaY) > 0) {
-        updateDebug(`Apple Watch Crown (wheel) event: DeltaY = ${event.deltaY}`);
-        clearTimeout(crownTimeout);
-        crownTimeout = setTimeout(() => {
-          updateDebug('No crown input detected recently');
-        }, 500); // Reset after 500ms of no crown interaction
+      if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
+        event.preventDefault();
+        updateDebug(`Key down detected: ${event.key}`);
       }
     });
   </script>
