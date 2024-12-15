@@ -13,16 +13,18 @@
       height: 100vh;
       margin: 0;
       background-color: #f0f0f0;
-      overflow: hidden; /* Prevent native scrolling */
+      overflow: hidden; /* Disable native scrolling */
     }
     #debug {
       background: #333;
       color: #fff;
       padding: 20px;
       border-radius: 10px;
-      font-size: 18px;
+      font-size: 16px;
       text-align: center;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      max-width: 80%;
+      word-wrap: break-word;
     }
   </style>
 </head>
@@ -32,44 +34,46 @@
   <script>
     const debug = document.getElementById('debug');
 
-    // Function to update the debug text
+    // Function to log and display debug messages
     function updateDebug(message) {
       debug.textContent = message;
+      console.log(message); // Log to console for additional debugging
     }
 
-    // Detect wheel events and block default scrolling
-    window.addEventListener('wheel', (event) => {
-      // Prevent the default page scroll
-      event.preventDefault();
+    // Monitor all relevant events
+    function setupListeners() {
+      // Pointer and touch events
+      window.addEventListener('touchstart', () => updateDebug('Touchstart detected'));
+      window.addEventListener('touchmove', () => updateDebug('Touchmove detected'), { passive: false });
+      window.addEventListener('touchend', () => updateDebug('Touchend detected'));
 
-      // Detect and log the crown movement
-      const deltaY = event.deltaY;
-      if (deltaY !== 0) {
-        updateDebug(`Wheel/Crown event detected: DeltaY = ${deltaY}`);
-      }
-    }, { passive: false }); // Use passive: false to prevent scrolling
+      // Mouse and wheel events
+      window.addEventListener('mousemove', () => updateDebug('Mousemove detected'));
+      window.addEventListener('mousedown', () => updateDebug('Mousedown detected'));
+      window.addEventListener('mouseup', () => updateDebug('Mouseup detected'));
+      window.addEventListener('wheel', (event) => {
+        event.preventDefault(); // Prevent default scrolling
+        updateDebug(`Wheel event detected: deltaY = ${event.deltaY}, deltaX = ${event.deltaX}`);
+      }, { passive: false });
 
-    // Detect touch events (for mobile devices)
-    window.addEventListener('touchstart', () => {
-      updateDebug('Touch start detected');
-    });
+      // Scroll tracking (to capture indirect scrolling)
+      let lastScroll = window.scrollY;
+      setInterval(() => {
+        const currentScroll = window.scrollY;
+        if (currentScroll !== lastScroll) {
+          updateDebug(`Scroll detected: scrollY = ${currentScroll}`);
+          lastScroll = currentScroll;
+        }
+      }, 50);
 
-    window.addEventListener('touchmove', (event) => {
-      event.preventDefault(); // Prevent native scrolling
-      updateDebug('Touch move detected');
-    }, { passive: false });
+      // Key events (if crown generates keypresses)
+      window.addEventListener('keydown', (event) => {
+        updateDebug(`Keydown detected: ${event.key}`);
+      });
+    }
 
-    window.addEventListener('touchend', () => {
-      updateDebug('Touch end detected');
-    });
-
-    // Prevent unintended vertical scroll caused by keypress
-    window.addEventListener('keydown', (event) => {
-      if (['ArrowUp', 'ArrowDown'].includes(event.key)) {
-        event.preventDefault();
-        updateDebug(`Key down detected: ${event.key}`);
-      }
-    });
+    // Initialize event listeners
+    setupListeners();
   </script>
 </body>
 </html>
