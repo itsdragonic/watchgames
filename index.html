@@ -78,8 +78,8 @@
         let scrollTimeout;
 
         // Constants for compensation motion
-        const SPEED_MULTIPLIER = 0.1; // Adjust the proportionality of movement speed
-        const DISTANCE_MULTIPLIER = 0.02; // Adjust the proportionality of movement distance
+        const SPEED_MULTIPLIER = 0.01; // Adjust the proportionality of movement speed
+        const DISTANCE_MULTIPLIER = 0.002; // Adjust the proportionality of movement distance
 
         // Function to reset user to center
         function resetToCenter() {
@@ -117,7 +117,7 @@
             }, 100);
 
             // Update debug information
-            middleValueDisplay.textContent = `Debug - Top Position: ${tops}\nScroll Speed: ${scrollSpeed.toFixed(2)} px/s`;
+            middleValueDisplay.textContent = `Debug Top Position: ${tops}\nScroll Speed: ${scrollSpeed.toFixed(2)} px/s`;
 
             // Update last scroll values
             lastScrollY = currentScroll;
