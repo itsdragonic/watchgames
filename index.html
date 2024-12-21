@@ -58,29 +58,15 @@
     <div class="middle-value" id="middleValue"></div>
 
     <script>
-        const ball = document.querySelector('.circle');
-        const paddleLeft = document.getElementById('ai');
-        const paddleRight = document.getElementById('player');
+        const rectangle = document.querySelector('.rectangle');
+        const circle = document.querySelector('.circle');
+        const middleValueDisplay = document.getElementById('middleValue');
 
-        const gameWidth = 430;
-        const gameHeight = 352;
-        const paddleSpeed = 3;
-        const ballSpeed = 4;
+        let tops = 100;
+        let lastScrollY = 0; // Previous scroll position
+        let lastTime = performance.now(); // Timestamp of the previous scroll event
+        let scrollSpeed = 0; // Derivative of scrolling (speed)
 
-        let ballX = gameWidth / 2 - 10;
-        let ballY = gameHeight / 2 - 10;
-        let ballDX = ballSpeed;
-        let ballDY = ballSpeed;
-
-        let rightPaddleY = 100;
-        let leftPaddleY = 100;
-        
-        
-        var rectangle = document.querySelector('.rectangle');
-        var circle = document.querySelector('.circle');
-        var middleValueDisplay = document.getElementById('middleValue');
-
-        var tops = 100;
         let resetColorTimeout; // Timeout ID for resetting color
 
         // Function to reset user to center
@@ -90,9 +76,15 @@
 
         // Function to handle scroll events
         function handleScroll() {
-            var currentScroll = window.scrollY;
-            var maxScroll = document.body.scrollHeight - window.innerHeight; // Maximum scroll position
-            var middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+            const currentScroll = window.scrollY;
+            const maxScroll = document.body.scrollHeight - window.innerHeight; // Maximum scroll position
+            const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+            const currentTime = performance.now();
+
+            // Calculate scroll speed (derivative)
+            const deltaY = currentScroll - lastScrollY;
+            const deltaTime = currentTime - lastTime;
+            scrollSpeed = deltaTime > 0 ? deltaY / (deltaTime / 1000) : 0; // Speed in pixels per second
 
             // Check if user has scrolled to the bottom
             if (currentScroll >= maxScroll) { // for special action button
@@ -115,7 +107,13 @@
             resetColorTimeout = setTimeout(() => {
                 circle.style.backgroundColor = 'red';
             }, 500);
-            middleValueDisplay.textContent = `Debug: ${tops}`;
+
+            // Update debug screen
+            middleValueDisplay.textContent = `Debug: Top=${tops}, Scroll Speed=${scrollSpeed.toFixed(2)} px/s`;
+
+            // Update last scroll values
+            lastScrollY = currentScroll;
+            lastTime = currentTime;
         }
 
         // Continuously keep the user at the center
