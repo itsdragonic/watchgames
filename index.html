@@ -67,7 +67,8 @@
         let lastScrollY = 0; // Previous scroll position
         let lastTime = performance.now(); // Timestamp of the previous scroll event
         let scrollSpeed = 0; // Derivative of scrolling (speed)
-
+        let isScrolling = false; // Tracks scroll activity
+        let scrollTimeout; // Timeout for resetting scroll speed
         let resetColorTimeout; // Timeout ID for resetting color
 
         // Function to reset user to center
@@ -106,9 +107,17 @@
                 circle.style.backgroundColor = 'red';
             }, 500);
 
+            // Reset scroll speed to 0 after a delay
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                scrollSpeed = 0;
+            }, 100);
+
             // Update last scroll values
             lastScrollY = currentScroll;
             lastTime = currentTime;
+
+            isScrolling = true; // User is scrolling
         }
 
         // Function to update debug information continuously
