@@ -10,6 +10,7 @@
             height: 780px; /* make width much bigger when working on computer (780px normally) */
             background-color: #fff;
             font-family: Arial, sans-serif;
+            overflow: hidden; /* Prevent visual scrolling */
         }
 
         .rectangle {
@@ -18,21 +19,21 @@
             height: 60px;
             background: #000;
             border-radius: 20px;
-            transform: translate(0, 0); /* No translation needed since offsets are manually added */
+            transform: translate(0, 0);
         }
 
         #player {
-            top: 100px; /* Centered vertically with an offset */
-            left: calc(85% - 20px); /* Centered horizontally with an offset */
+            top: 100px;
+            left: calc(85% - 20px);
         }
 
         #ai {
-            top: 100px; /* Centered vertically with an offset */
-            left: calc(15% - 20px); /* Centered horizontally with an offset */
+            top: 100px;
+            left: calc(15% - 20px);
         }
 
         .circle {
-            position: fixed; /* Keeps the circle visually in the center */
+            position: fixed;
             width: 30px;
             height: 30px;
             background-color: red;
@@ -48,32 +49,52 @@
             font-size: 16px;
             top: 20%;
             left: 10px;
-            white-space: pre-line; /* Ensures multiline display */
+            white-space: pre-line;
+        }
+
+        .content {
+            position: relative;
+            top: 0;
+            transition: transform 0.25s cubic-bezier(0.25, 0.8, 0.5, 1);
         }
     </style>
 </head>
 <body>
-    <div id="player" class="rectangle"></div>
-    <div id="ai" class="rectangle"></div>
-    <div class="circle"></div>
-    <div class="middle-value" id="middleValue"></div>
+    <div class="content">
+        <div id="player" class="rectangle"></div>
+        <div id="ai" class="rectangle"></div>
+        <div class="circle"></div>
+        <div class="middle-value" id="middleValue"></div>
+    </div>
 
     <script>
-        const rectangle = document.querySelector('.rectangle');
-        const circle = document.querySelector('.circle');
+        const content = document.querySelector('.content');
         const middleValueDisplay = document.getElementById('middleValue');
 
         let tops = 100;
-        let lastScrollY = 0; // Previous scroll position
-        let lastTime = performance.now(); // Timestamp of the previous scroll event
-        let scrollSpeed = 0; // Derivative of scrolling (speed)
-        let isScrolling = false; // Tracks scroll activity
-        let scrollTimeout; // Timeout for resetting scroll speed
-        let resetColorTimeout; // Timeout ID for resetting color
+        let lastScrollY = 0;
+        let lastTime = performance.now();
+        let scrollSpeed = 0;
+        let scrollTimeout;
+
+        // Constants for compensation motion
+        const SPEED_MULTIPLIER = 0.1; // Adjust the proportionality of movement speed
+        const DISTANCE_MULTIPLIER = 0.02; // Adjust the proportionality of movement distance
 
         // Function to reset user to center
         function resetToCenter() {
             window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
+        }
+
+        // Function to calculate and apply compensation motion
+        function compensateScroll() {
+            const offset = scrollSpeed * DISTANCE_MULTIPLIER;
+            content.style.transform = `translateY(${offset}px)`;
+
+            // Return to normal position smoothly after 0.25s
+            setTimeout(() => {
+                content.style.transform = 'translateY(0)';
+            }, 250);
         }
 
         // Function to handle scroll events
@@ -81,31 +102,13 @@
             const currentScroll = window.scrollY;
             const currentTime = performance.now();
 
-            // Calculate scroll speed (derivative) with reversed sign
+            // Calculate scroll speed (derivative)
             const deltaY = currentScroll - lastScrollY;
             const deltaTime = currentTime - lastTime;
-            scrollSpeed = deltaTime > 0 ? -(deltaY / (deltaTime / 1000)) : 0; // Negative for reversed sign
+            scrollSpeed = deltaTime > 0 ? -(deltaY / (deltaTime / 1000)) : 0;
 
-            const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
-
-            if (currentScroll > middleY + 1) { // for movements down
-                circle.style.backgroundColor = 'green';
-                tops -= 15;
-            } else if (currentScroll < middleY - 1) { // for movements up
-                circle.style.backgroundColor = 'blue';
-                tops += 15;
-            }
-
-            rectangle.style.top = `${tops}px`;
-
-            // Reset the scroll position
-            resetToCenter();
-
-            // Reset the circle color to red after 500ms
-            clearTimeout(resetColorTimeout); // Clear previous timeout if any
-            resetColorTimeout = setTimeout(() => {
-                circle.style.backgroundColor = 'red';
-            }, 500);
+            // Trigger compensation motion
+            compensateScroll();
 
             // Reset scroll speed to 0 after a delay
             clearTimeout(scrollTimeout);
@@ -113,23 +116,18 @@
                 scrollSpeed = 0;
             }, 100);
 
+            // Update debug information
+            middleValueDisplay.textContent = `Debug - Top Position: ${tops}\nScroll Speed: ${scrollSpeed.toFixed(2)} px/s`;
+
             // Update last scroll values
             lastScrollY = currentScroll;
             lastTime = currentTime;
-
-            isScrolling = true; // User is scrolling
-        }
-
-        // Function to update debug information continuously
-        function updateDebug() {
-            middleValueDisplay.textContent = `Debug - Top Position: ${tops}\nScroll Speed: ${scrollSpeed.toFixed(2)} px/s`;
-            requestAnimationFrame(updateDebug); // Call recursively for continuous updates
         }
 
         // Continuously keep the user at the center
         function continuousCentering() {
             resetToCenter();
-            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+            requestAnimationFrame(continuousCentering);
         }
 
         // Add scroll event listener
@@ -139,7 +137,6 @@
         window.onload = () => {
             resetToCenter();
             continuousCentering();
-            updateDebug();
         };
     </script>
 </body>
