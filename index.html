@@ -28,7 +28,7 @@
 
         #ai {
             top: 100px; /* Centered vertically with an offset */
-            left: calc(15% - 30px); /* Centered horizontally with an offset */
+            left: calc(15% - 25px); /* Centered horizontally with an offset */
         }
 
         .circle {
@@ -73,7 +73,7 @@
 
         // Function to reset user to center
         function resetToCenter() {
-            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'smooth' });
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
         }
 
         // Function to handle scroll events
