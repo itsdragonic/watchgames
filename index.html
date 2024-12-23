@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinite Scroll</title>
+  <title>Infinite Scroll with Moving Square</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -30,6 +30,17 @@
       padding: 10px;
       display: none;
     }
+
+    .floating-square {
+      position: fixed;
+      width: 100px;
+      height: 100px;
+      background-color: red;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease-out;
+    }
   </style>
 </head>
 <body>
@@ -37,13 +48,15 @@
     <!-- Initial content will load here -->
   </div>
   <div id="loader" class="loader">Loading...</div>
+  <div id="floatingSquare" class="floating-square"></div>
 
   <script>
     const contentDiv = document.getElementById("content");
     const loaderDiv = document.getElementById("loader");
+    const floatingSquare = document.getElementById("floatingSquare");
 
-    // Simulated backend data
     let postCount = 0;
+    let isScrolling = false;
 
     // Function to fetch data (simulated backend API call)
     function fetchPosts() {
@@ -82,14 +95,34 @@
       }
     }
 
+    // Logic for floating square movement
+    function handleScroll() {
+      if (!isScrolling) {
+        isScrolling = true;
+
+        // Move square slightly faster than scrolling
+        floatingSquare.style.transform = `translate(-50%, -50%) translateY(-20px)`;
+      }
+
+      // Stop movement shortly after scrolling ends
+      clearTimeout(handleScroll.timeout);
+      handleScroll.timeout = setTimeout(() => {
+        isScrolling = false;
+
+        // Reset square to its original position
+        floatingSquare.style.transform = `translate(-50%, -50%)`;
+      }, 150); // Timeout duration
+    }
+
     // Initial content load
     (async function init() {
       const initialPosts = await fetchPosts();
       renderPosts(initialPosts);
     })();
 
-    // Add scroll event listener
+    // Event listeners
     window.addEventListener("scroll", infiniteScroll);
+    window.addEventListener("scroll", handleScroll);
   </script>
 </body>
 </html>
