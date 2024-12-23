@@ -75,7 +75,7 @@
         // Function to reset user to center
         function resetToCenter() {
             window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
-            circle.style.top = '500px';
+            //circle.style.top = '500px';
         }
 
         // Function to handle scroll events
@@ -93,11 +93,11 @@
             if (currentScroll > middleY + 1) { // for movements up
                 circle.style.backgroundColor = 'green';
                 tops -= 15;
-                circle.style.top = '550px';
+                circle.style.top = '600px';
             } else if (currentScroll < middleY - 1) { // for movements down
                 circle.style.backgroundColor = 'blue';
                 tops += 15;
-                circle.style.top = '450px';
+                circle.style.top = '400px';
             }
 
             rectangle.style.top = `${tops}px`;
