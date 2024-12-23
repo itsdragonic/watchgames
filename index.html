@@ -42,14 +42,14 @@
         });
 
         // Get the circle element
-        const circle = document.getElementById('circle');
+        var circle = document.getElementById('circle');
 
         function updateCirclePosition() {
-            const scrollY = window.scrollY;
+            let scrollY = window.scrollY;
             circle.style.top = `${scrollY + 50}px`;
         }
 
-        setTimeout(() => {
+        setInterval(() => {
             updateCirclePosition();
         }, 5);
     </script>
