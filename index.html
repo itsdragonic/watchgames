@@ -1,150 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Watch Engine</title>
-    <style>
-        body {
-            margin: 0;
-            height: 780px;
-            background-color: #fff;
-            font-family: Arial, sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infinite Scroll with Moving Square</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
 
-        .rectangle {
-            position: absolute;
-            width: 20px;
-            height: 60px;
-            background: #000;
-            border-radius: 20px;
-        }
+    .content {
+      padding: 20px;
+    }
 
-        #player {
-            top: 450px;
-            left: calc(85% - 20px);
-        }
+    .post {
+      background: #fff;
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
 
-        #ai {
-            top: 420px;
-            left: calc(10% - 25px);
-        }
+    .loader {
+      text-align: center;
+      font-size: 16px;
+      padding: 10px;
+      display: none;
+    }
 
-        .circle {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: red;
-            border-radius: 50%;
-            top: 500px;
-            left: 45%;
-        }
-
-        .middle-value {
-            position: fixed;
-            color: red;
-            font-size: 16px;
-            top: 20%;
-            left: 10px;
-            white-space: pre-line;
-        }
-    </style>
+    .floating-square {
+      position: fixed;
+      width: 320px;
+      height: 380px;
+      background-image: linear-gradient(red , yellow);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: transform 0.1s ease-out;
+    }
+  </style>
 </head>
 <body>
-    <div id="player" class="rectangle"></div>
-    <div id="ai" class="rectangle"></div>
-    <div class="circle"></div>
-    <div class="middle-value" id="middleValue"></div>
+  <div id="content" class="content">
+    <!-- Initial content will load here -->
+  </div>
+  <div id="loader" class="loader">Loading...</div>
+  <div id="floatingSquare" class="floating-square"></div>
 
-    <script>
-        const circle = document.querySelector('.circle');
-        const player = document.getElementById('player');
-        const ai = document.getElementById('ai');
-        const middleValueDisplay = document.getElementById('middleValue');
+  <script>
+    const contentDiv = document.getElementById("content");
+    const loaderDiv = document.getElementById("loader");
+    const floatingSquare = document.getElementById("floatingSquare");
 
-        let circleTop = 500;
-        let playerTop = 450;
-        let aiTop = 420;
-        let lastScrollY = 0;
-        let scrollTimeout, resetColorTimeout;
+    let postCount = 0;
+    let isScrolling = false;
 
-        function resetToCenter() {
-            window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'instant' });
-        }
+    // Function to fetch data (simulated backend API call)
+    function fetchPosts() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const posts = [];
+          for (let i = 0; i < 5; i++) {
+            postCount++;
+            posts.push(`Post #${postCount}`);
+          }
+          resolve(posts);
+        }, 1000); // Simulate network delay
+      });
+    }
 
-        function bounceElement(element, topValue, direction) {
-            // Adjust position dynamically and apply the bounce effect
-            const offset = direction === 'up' ? -5 : 5;
-            element.style.top = `${topValue + offset}px`;
-            setTimeout(() => {
-                element.style.top = `${topValue}px`;
-            }, 200);
-        }
+    // Function to render posts
+    function renderPosts(posts) {
+      posts.forEach((post) => {
+        const postDiv = document.createElement("div");
+        postDiv.className = "post";
+        postDiv.textContent = post;
+        contentDiv.appendChild(postDiv);
+      });
+    }
 
-        function handleScroll() {
-            const currentScroll = window.scrollY;
-            const middleY = document.body.scrollHeight / 2;
+    // Infinite scroll logic
+    async function infiniteScroll() {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+        loaderDiv.style.display = "block"; // Show loader
 
-            if (currentScroll > middleY + 1) {
-                // Scrolling up
-                circle.style.backgroundColor = 'green';
-                circleTop -= 15;
-                playerTop -= 10;
-                aiTop -= 8;
+        // Fetch and render new posts
+        const newPosts = await fetchPosts();
+        renderPosts(newPosts);
 
-                bounceElement(circle, circleTop, 'up');
-                bounceElement(player, playerTop, 'up');
-                bounceElement(ai, aiTop, 'up');
-            } else if (currentScroll < middleY - 1) {
-                // Scrolling down
-                circle.style.backgroundColor = 'blue';
-                circleTop += 15;
-                playerTop += 10;
-                aiTop += 8;
+        loaderDiv.style.display = "none"; // Hide loader
+      }
+    }
 
-                bounceElement(circle, circleTop, 'down');
-                bounceElement(player, playerTop, 'down');
-                bounceElement(ai, aiTop, 'down');
-            }
+    // Logic for floating square movement
+    function handleScroll() {
+      if (!isScrolling) {
+        isScrolling = true;
 
-            // Update positions
-            circle.style.top = `${circleTop}px`;
-            player.style.top = `${playerTop}px`;
-            ai.style.top = `${aiTop}px`;
+        // Move square slightly faster than scrolling
+        floatingSquare.style.transform = `translate(-50%, -50%) translateY(-20px)`;
+      }
 
-            // Reset scroll position
-            resetToCenter();
+      // Stop movement shortly after scrolling ends
+      clearTimeout(handleScroll.timeout);
+      handleScroll.timeout = setTimeout(() => {
+        isScrolling = false;
 
-            // Reset colors
-            clearTimeout(resetColorTimeout);
-            resetColorTimeout = setTimeout(() => {
-                circle.style.backgroundColor = 'red';
-            }, 500);
+        // Reset square to its original position
+        floatingSquare.style.transform = `translate(-50%, -50%)`;
+      }, 150); // Timeout duration
+    }
 
-            // Clear scroll timeout
-            clearTimeout(scrollTimeout);
-            scrollTimeout = setTimeout(() => {
-                scrollSpeed = 0;
-            }, 100);
-        }
+    // Initial content load
+    (async function init() {
+      const initialPosts = await fetchPosts();
+      renderPosts(initialPosts);
+    })();
 
-        function updateDebug() {
-            middleValueDisplay.textContent = `Circle Top: ${circleTop}px\nPlayer Top: ${playerTop}px\nAI Top: ${aiTop}px`;
-            requestAnimationFrame(updateDebug);
-        }
-
-        function continuousCentering() {
-            resetToCenter();
-            requestAnimationFrame(continuousCentering);
-        }
-
-        window.onscroll = handleScroll;
-
-        window.onload = () => {
-            resetToCenter();
-            continuousCentering();
-            updateDebug();
-        };
-    </script>
+    // Event listeners
+    window.addEventListener("scroll", infiniteScroll);
+    window.addEventListener("scroll", handleScroll);
+  </script>
 </body>
 </html>
