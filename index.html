@@ -2,56 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scroll Dynamic Circle</title>
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Watch Engine</title>
     <style>
-        html, body {
+        body {
             margin: 0;
-            padding: 0;
-            /*width: 353px;*/
-            height: 20000px;
-            overflow-x: hidden;
+            height: 780px; /* make width much bigger when working on computer (780px normally) */
+            background-color: #fff;
+            font-family: Arial, sans-serif;
         }
 
-        body {
-            background-color: #f0f0f0;
-            position: relative;
+        .rectangle {
+            position: fixed;
+            width: 20px;
+            height: 60px;
+            background: #000;
+            border-radius: 20px;
+            transform: translate(0, 0); /* No translation needed since offsets are manually added */
+        }
+
+        #player {
+            top: 100px; /* Centered vertically with an offset */
+            left: calc(85% - 20px); /* Centered horizontally with an offset */
+        }
+
+        #ai {
+            top: 100px; /* Centered vertically with an offset */
+            left: calc(10% - 25px); /* Centered horizontally with an offset */
         }
 
         .circle {
-            position: absolute;
-            width: 100px;
-            height: 100px;
+            position: fixed; /* Keeps the circle visually in the center */
+            width: 30px;
+            height: 30px;
             background-color: red;
             border-radius: 50%;
-            top: 50%;
-            left: 50%;
+            top: 55%;
+            left: 45%;
             transform: translate(-50%, -50%);
+        }
+
+        .middle-value {
+            position: fixed;
+            color: red;
+            font-size: 16px;
+            top: 20%;
+            left: 10px;
+            white-space: pre-line; /* Ensures multiline display */
         }
     </style>
 </head>
 <body>
-    <div class="circle" id="circle"></div>
+    <div id="player" class="rectangle"></div>
+    <div id="ai" class="rectangle"></div>
+    <div class="circle"></div>
+    <div class="middle-value" id="middleValue"></div>
 
     <script>
-        // Start the page at the center
-        window.scrollTo({ 
-            top: document.body.scrollHeight / 2, 
-            left: 0, 
-            behavior: 'instant' 
-        });
+        const rectangle = document.querySelector('.rectangle');
+        const circle = document.querySelector('.circle');
+        const middleValueDisplay = document.getElementById('middleValue');
 
-        // Get the circle element
-        var circle = document.getElementById('circle');
+        let tops = 100;
+        let lastScrollY = 0; // Previous scroll position
+        let lastTime = performance.now(); // Timestamp of the previous scroll event
+        let scrollSpeed = 0; // Derivative of scrolling (speed)
+        let isScrolling = false; // Tracks scroll activity
+        let scrollTimeout; // Timeout for resetting scroll speed
+        let resetColorTimeout; // Timeout ID for resetting color
 
-        function updateCirclePosition() {
-            let scrollY = window.scrollY;
-            circle.style.top = ${scrollY + 50}px;
+        // Function to reset user to center
+        function resetToCenter() {
+            window.scrollTo({ top: document.body.scrollHeight / 2, left: 0, behavior: 'instant' });
         }
 
-        setInterval(() => {
-            updateCirclePosition();
-        }, 5);
+        // Function to handle scroll events
+        function handleScroll() {
+            const currentScroll = window.scrollY;
+            const currentTime = performance.now();
+
+            // Calculate scroll speed (derivative) with reversed sign
+            const deltaY = currentScroll - lastScrollY;
+            const deltaTime = currentTime - lastTime;
+            scrollSpeed = deltaTime > 0 ? -(deltaY / (deltaTime / 1000)) : 0; // Negative for reversed sign
+
+            const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+
+            if (currentScroll > middleY + 1) { // for movements down
+                circle.style.backgroundColor = 'green';
+                tops -= 15;
+            } else if (currentScroll < middleY - 1) { // for movements up
+                circle.style.backgroundColor = 'blue';
+                tops += 15;
+            }
+
+            rectangle.style.top = `${tops}px`;
+
+            // Reset the scroll position
+            resetToCenter();
+
+            // Reset the circle color to red after 500ms
+            clearTimeout(resetColorTimeout); // Clear previous timeout if any
+            resetColorTimeout = setTimeout(() => {
+                circle.style.backgroundColor = 'red';
+            }, 500);
+
+            // Reset scroll speed to 0 after a delay
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                scrollSpeed = 0;
+            }, 100);
+
+            // Update last scroll values
+            lastScrollY = currentScroll;
+            lastTime = currentTime;
+
+            isScrolling = true; // User is scrolling
+        }
+
+        // Function to update debug information continuously
+        function updateDebug() {
+            middleValueDisplay.textContent = `Debug - Top Position: ${tops}\nScroll Speed: ${scrollSpeed.toFixed(2)} px/s`;
+            requestAnimationFrame(updateDebug); // Call recursively for continuous updates
+        }
+
+        // Continuously keep the user at the center
+        function continuousCentering() {
+            resetToCenter();
+            requestAnimationFrame(continuousCentering); // Call recursively for constant updates
+        }
+
+        // Add scroll event listener
+        window.onscroll = handleScroll;
+
+        // Initialize centering and debug on page load
+        window.onload = () => {
+            resetToCenter();
+            continuousCentering();
+            updateDebug();
+        };
     </script>
 </body>
 </html>
