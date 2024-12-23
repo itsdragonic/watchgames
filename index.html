@@ -2,26 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=353, height=3000, user-scalable=no">
-    <title>Apple Watch Browser Circle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scroll Dynamic Circle</title>
     <style>
         html, body {
             margin: 0;
             padding: 0;
-            width: 353px; /* Ensure the width matches the viewport */
-            height: 3000px; /* Set height as specified */
-            overflow: hidden; /* Prevent horizontal scrolling */
+            width: 353px;
+            height: 3000px;
+            overflow-x: hidden;
         }
 
         body {
-            position: relative;
             background-color: #f0f0f0;
+            position: relative;
         }
 
-        #circle {
+        .circle {
             position: absolute;
-            width: 50px; /* Smaller size for better fit */
-            height: 50px;
+            width: 100px;
+            height: 100px;
             background-color: red;
             border-radius: 50%;
             top: 50%;
@@ -34,21 +34,21 @@
     <div class="circle" id="circle"></div>
 
     <script>
-        // Center the page on load
-        window.onload = () => {
-            window.scrollTo({
-                top: document.body.scrollHeight / 2,
-                left: 0,
-                behavior: 'instant'
-            });
-        };
-
-        // Adjust circle position dynamically
-        const circle = document.getElementById('circle');
-        window.addEventListener('scroll', () => {
-            const scrollY = window.scrollY;
-            circle.style.top = `calc(50% + ${scrollY}px)`;
+        // Start the page at the center
+        window.scrollTo({ 
+            top: document.body.scrollHeight / 2, 
+            left: 0, 
+            behavior: 'instant' 
         });
+
+        // Get the circle element
+        const circle = document.getElementById('circle');
+        var tops = 1500;
+
+        while (true) {
+            tops = window.scrollY;
+            rectangle.style.top = `${tops}px`;
+        }
     </script>
 </body>
 </html>
