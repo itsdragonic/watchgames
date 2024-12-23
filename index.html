@@ -7,7 +7,7 @@
     <style>
         body {
             margin: 0;
-            width: 360px;
+            width: 380px;
             height: 780px; /* make width much bigger when working on computer (780px normally) */
             background-color: #fff;
             font-family: Arial, sans-serif;
@@ -92,6 +92,7 @@
             if (currentScroll > middleY + 1) { // for movements down
                 circle.style.backgroundColor = 'green';
                 tops -= 15;
+                circle.style.top = '490px';
             } else if (currentScroll < middleY - 1) { // for movements up
                 circle.style.backgroundColor = 'blue';
                 tops += 15;
