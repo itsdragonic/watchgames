@@ -8,6 +8,7 @@
         html, body {
             margin: 0;
             padding: 0;
+            /*width: 353px;*/
             height: 20000px;
             overflow-x: hidden;
         }
@@ -34,45 +35,23 @@
 
     <script>
         // Start the page at the center
-        window.scrollTo({
-            top: document.body.scrollHeight / 2,
-            left: 0,
-            behavior: 'instant'
+        window.scrollTo({ 
+            top: document.body.scrollHeight / 2, 
+            left: 0, 
+            behavior: 'instant' 
         });
 
-        const circle = document.getElementById('circle');
-        let currentTop = window.scrollY + 50; // Initial circle position
-        let lastScrollY = window.scrollY; // Track previous scroll position
-        let velocity = 0; // Introduce velocity for overshooting
+        // Get the circle element
+        var circle = document.getElementById('circle');
 
         function updateCirclePosition() {
-            const scrollY = window.scrollY;
-            const targetTop = scrollY + 50;
-
-            // Calculate scroll direction and adjust velocity for overshooting
-            const scrollDelta = scrollY - lastScrollY;
-            if (scrollDelta !== 0) {
-                velocity = scrollDelta * 2; // Amplify the movement slightly to overshoot
-            }
-
-            // Smoothly transition currentTop toward targetTop with added velocity
-            currentTop += (targetTop - currentTop + velocity) * 0.2;
-
-            // Apply the new position
-            circle.style.top = `${currentTop}px`;
-
-            // Decay the velocity over time to stop overshooting
-            velocity *= 0.9;
-
-            // Update the last scroll position
-            lastScrollY = scrollY;
-
-            // Schedule the next update
-            requestAnimationFrame(updateCirclePosition);
+            let scrollY = window.scrollY;
+            circle.style.top = ${scrollY + 50}px;
         }
 
-        // Start the position update loop
-        updateCirclePosition();
+        setInterval(() => {
+            updateCirclePosition();
+        }, 5);
     </script>
 </body>
 </html>
