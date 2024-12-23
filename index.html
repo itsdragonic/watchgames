@@ -47,17 +47,11 @@
         function updateCirclePosition() {
             const scrollY = window.scrollY;
             circle.style.top = `${scrollY + 50}px`;
-
-            // Continue the animation
-            requestAnimationFrame(updateCirclePosition);
         }
 
         setTimeout(() => {
-            requestAnimationFrame(updateCirclePosition);
-        }, 50);
-
-        // Start the position update loop
-        requestAnimationFrame(updateCirclePosition);
+            updateCirclePosition();
+        }, 5);
     </script>
 </body>
 </html>
