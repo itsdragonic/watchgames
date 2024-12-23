@@ -45,10 +45,12 @@
         const circle = document.getElementById('circle');
         var tops = 1500;
 
-        while (true) {
+        function handleScroll() {
             tops = window.scrollY;
             rectangle.style.top = `${tops}px`;
         }
+
+        window.onscroll = handleScroll;
     </script>
 </body>
 </html>
