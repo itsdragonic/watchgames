@@ -35,11 +35,11 @@
       position: fixed;
       width: 320px;
       height: 380px;
-      background-image: linear-gradient(red , yellow);
+      background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
-      transition: transform 0.1s ease-out;
+      transform: translate(-50%, calc(-50% - 20px)); /* Idle state is 20px up */
+      transition: transform 0.2s ease-in-out;
     }
   </style>
 </head>
@@ -100,8 +100,8 @@
       if (!isScrolling) {
         isScrolling = true;
 
-        // Move square slightly faster than scrolling
-        floatingSquare.style.transform = `translate(-50%, -50%) translateY(-20px)`;
+        // Reset to centered position during scroll
+        floatingSquare.style.transform = `translate(-50%, -50%)`;
       }
 
       // Stop movement shortly after scrolling ends
@@ -109,15 +109,15 @@
       handleScroll.timeout = setTimeout(() => {
         isScrolling = false;
 
-        // Reset square to its original position
-        floatingSquare.style.transform = `translate(-50%, -50%)`;
+        // Return to idle state 20px higher
+        floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
       }, 150); // Timeout duration
     }
 
     // Initial content load
     (async function init() {
       const initialPosts = await fetchPosts();
-      renderPosts(initialPosts);
+      renderPosts(initialPosts());
     })();
 
     // Event listeners
