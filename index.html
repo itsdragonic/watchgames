@@ -19,7 +19,7 @@
         }
 
         .circle {
-            position: fixed;
+            position: absolute;
             width: 100px;
             height: 100px;
             background-color: red;
@@ -46,7 +46,7 @@
 
         function updateCirclePosition() {
             let scrollY = window.scrollY;
-            circle.style.top = `${scrollY*0.5 + 50}px`;
+            circle.style.top = `${scrollY + 50}px`;
         }
 
         setInterval(() => {
