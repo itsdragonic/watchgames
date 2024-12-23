@@ -96,6 +96,8 @@
             } else if (currentScroll < middleY - 1) { // for movements up
                 circle.style.backgroundColor = 'blue';
                 tops += 15;
+            } else {
+                circle.style.top = '500px';
             }
 
             rectangle.style.top = `${tops}px`;
