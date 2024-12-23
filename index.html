@@ -34,24 +34,41 @@
 
     <script>
         // Start the page at the center
-        window.scrollTo({ 
-            top: document.body.scrollHeight / 2, 
-            left: 0, 
-            behavior: 'instant' 
+        window.scrollTo({
+            top: document.body.scrollHeight / 2,
+            left: 0,
+            behavior: 'instant'
         });
 
-        // Get the circle element
         const circle = document.getElementById('circle');
         let currentTop = window.scrollY + 50; // Initial circle position
+        let lastScrollY = window.scrollY; // Track previous scroll position
+        let velocity = 0; // Introduce velocity for overshooting
 
         function updateCirclePosition() {
-            const targetTop = window.scrollY + 50; // Desired position based on scroll
-            // Easing logic: Smoothly transition currentTop toward targetTop
-            currentTop += (targetTop - currentTop) * 0.1; 
+            const scrollY = window.scrollY;
+            const targetTop = scrollY + 50;
+
+            // Calculate scroll direction and adjust velocity for overshooting
+            const scrollDelta = scrollY - lastScrollY;
+            if (scrollDelta !== 0) {
+                velocity = scrollDelta * 1.2; // Amplify the movement slightly to overshoot
+            }
+
+            // Smoothly transition currentTop toward targetTop with added velocity
+            currentTop += (targetTop - currentTop + velocity) * 0.2;
+
+            // Apply the new position
             circle.style.top = `${currentTop}px`;
 
-            // Continue updating
-            setTimeout(updateCirclePosition, 10); // Approx 60 updates per second
+            // Decay the velocity over time to stop overshooting
+            velocity *= 0.9;
+
+            // Update the last scroll position
+            lastScrollY = scrollY;
+
+            // Schedule the next update
+            requestAnimationFrame(updateCirclePosition);
         }
 
         // Start the position update loop
