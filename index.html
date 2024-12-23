@@ -8,7 +8,6 @@
         html, body {
             margin: 0;
             padding: 0;
-            /*width: 353px;*/
             height: 20000px;
             overflow-x: hidden;
         }
@@ -42,16 +41,21 @@
         });
 
         // Get the circle element
-        var circle = document.getElementById('circle');
+        const circle = document.getElementById('circle');
+        let currentTop = window.scrollY + 50; // Initial circle position
 
         function updateCirclePosition() {
-            let scrollY = window.scrollY;
-            circle.style.top = `${scrollY + 50}px`;
+            const targetTop = window.scrollY + 50; // Desired position based on scroll
+            // Easing logic: Smoothly transition currentTop toward targetTop
+            currentTop += (targetTop - currentTop) * 0.1; 
+            circle.style.top = `${currentTop}px`;
+
+            // Continue updating
+            setTimeout(updateCirclePosition, 10); // Approx 60 updates per second
         }
 
-        setInterval(() => {
-            updateCirclePosition();
-        }, 5);
+        // Start the position update loop
+        updateCirclePosition();
     </script>
 </body>
 </html>
