@@ -52,7 +52,7 @@
             // Calculate scroll direction and adjust velocity for overshooting
             const scrollDelta = scrollY - lastScrollY;
             if (scrollDelta !== 0) {
-                velocity = scrollDelta * 1.2; // Amplify the movement slightly to overshoot
+                velocity = scrollDelta * 2; // Amplify the movement slightly to overshoot
             }
 
             // Smoothly transition currentTop toward targetTop with added velocity
