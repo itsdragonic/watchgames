@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Infinite Scroll with Moving Square</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infinite Scroll with Constant ScrollTo</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -38,7 +38,7 @@
       background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
-      transform: translate(-50%, calc(-50% - 20px)); /* Idle state is 20px up */
+      transform: translate(-50%, calc(-50% - 20px));
       transition: transform 0.2s ease-in-out;
     }
   </style>
@@ -56,7 +56,6 @@
     const floatingSquare = document.getElementById("floatingSquare");
 
     let postCount = 0;
-    let isScrolling = false;
 
     // Function to fetch data (simulated backend API call)
     function fetchPosts() {
@@ -95,34 +94,27 @@
       }
     }
 
-    // Logic for floating square movement
-    function handleScroll() {
-      if (!isScrolling) {
-        isScrolling = true;
-
-        // Reset to centered position during scroll
-        floatingSquare.style.transform = `translate(-50%, -50%)`;
-      }
-
-      // Stop movement shortly after scrolling ends
-      clearTimeout(handleScroll.timeout);
-      handleScroll.timeout = setTimeout(() => {
-        isScrolling = false;
-
-        // Return to idle state 20px higher
-        floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
-      }, 150); // Timeout duration
+    // Constantly running scroll command
+    function constantScroll() {
+      window.scrollTo({
+        top: document.body.scrollHeight / 2,
+        left: -80,
+        behavior: 'instant',
+      });
+      requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
     }
 
     // Initial content load
     (async function init() {
       const initialPosts = await fetchPosts();
-      renderPosts(initialPosts());
+      renderPosts(initialPosts);
+
+      // Start constant scrolling
+      constantScroll();
     })();
 
     // Event listeners
     window.addEventListener("scroll", infiniteScroll);
-    window.addEventListener("scroll", handleScroll);
   </script>
 </body>
 </html>
