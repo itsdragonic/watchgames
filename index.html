@@ -104,7 +104,7 @@
         isScrolling = false;
 
         // Return to idle state 20px higher
-        //floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
+        floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
         window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
       }, 150); // Timeout duration
     }
