@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <title>Infinite Scroll with Constant ScrollTo</title>
   <style>
     body {
@@ -40,7 +41,18 @@
       top: calc(50% - 200px);
       left: 50%;
       transform: translate(-50%, -50%);
+      display: flex; /* Enables flexible alignment */
+      justify-content: center; /* Centers text horizontally */
+      align-items: flex-start; /* Aligns items to the top */
+      font-family: 'Roboto', sans-serif; /* Sets font to Roboto */
+      color: #fff; /* Ensures the text is visible on a dark background */
     }
+    
+    #scoreboard span {
+      margin-top: 60%; /* Positions text 60% from the top of the rectangle */
+      text-align: center; /* Centers text alignment */
+    }
+
 
     .floating-square {
       position: fixed;
@@ -90,7 +102,10 @@
   </div>
   <div id="loader" class="loader">Loading...</div>
 
-  <div id="scoreboard"></div>
+  <div id="scoreboard">
+    <span>Score: 0</span>
+  </div>
+  
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
