@@ -42,7 +42,7 @@
       transition: transform 0.2s ease-in-out;
     }
 
-        .rectangle {
+    .rectangle {
         position: absolute;
         width: 20px;
         height: 60px;
@@ -91,6 +91,10 @@
 
     let postCount = 0;
 
+    var tops = 100;
+    var player = document.getElementById('player');
+    var ball = document.querySelector('.circle');
+
     // Function to fetch data (simulated backend API call)
     function fetchPosts() {
       return new Promise((resolve) => {
@@ -134,6 +138,23 @@
         top: document.body.scrollHeight / 2,
         behavior: 'instant',
       });
+
+      const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+
+      if (window.scrollY > middleY + 1) { // for movements up
+          ball.style.backgroundColor = 'green';
+          tops -= 15;
+      } else if (window.scrollY < middleY - 1) { // for movements down
+          ball.style.backgroundColor = 'blue';
+          tops += 15;
+      }
+
+      // upper and lower bounds
+      if (tops < 0) {tops = 0;}
+      if (tops > 300) {tops = 300;}
+      
+      player.style.top = `${tops}px`;
+
       requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
     }
 
