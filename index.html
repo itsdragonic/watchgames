@@ -13,25 +13,6 @@
       background-color: #f4f4f4;
     }
 
-    .content {
-      padding: 20px;
-    }
-
-    .post {
-      background: #fff;
-      margin: 20px 0;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .loader {
-      text-align: center;
-      font-size: 16px;
-      padding: 10px;
-      display: none;
-    }
-
     .floating-square {
       position: fixed;
       width: 325px;
@@ -75,10 +56,6 @@
   </style>
 </head>
 <body>
-  <div id="content" class="content">
-    <!-- Initial content will load here -->
-  </div>
-  <div id="loader" class="loader">Loading...</div>
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
@@ -86,51 +63,11 @@
   </div>
 
   <script>
-    const contentDiv = document.getElementById("content");
-    const loaderDiv = document.getElementById("loader");
     const floatingSquare = document.getElementById("floatingSquare");
 
-    let postCount = 0;
     let isScrolling = false;
 
     window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'instant' });
-
-    // Function to fetch data (simulated backend API call)
-    function fetchPosts() {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const posts = [];
-          for (let i = 0; i < 5; i++) {
-            postCount++;
-            posts.push(`Post #${postCount}`);
-          }
-          resolve(posts);
-        }, 1000); // Simulate network delay
-      });
-    }
-
-    // Function to render posts
-    function renderPosts(posts) {
-      posts.forEach((post) => {
-        const postDiv = document.createElement("div");
-        postDiv.className = "post";
-        postDiv.textContent = post;
-        contentDiv.appendChild(postDiv);
-      });
-    }
-
-    // Infinite scroll logic
-    async function infiniteScroll() {
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-        loaderDiv.style.display = "block"; // Show loader
-
-        // Fetch and render new posts
-        const newPosts = await fetchPosts();
-        renderPosts(newPosts);
-
-        loaderDiv.style.display = "none"; // Hide loader
-      }
-    }
 
     var tops = 100;
     var player = document.getElementById('player');
@@ -168,18 +105,11 @@
 
         // Return to idle state 20px higher
         floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
-        window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
+        //window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
       }, 150); // Timeout duration
     }
 
-    // Initial content load
-    (async function init() {
-      const initialPosts = await fetchPosts();
-      renderPosts(initialPosts());
-    })();
-
     // Event listeners
-    window.addEventListener("scroll", infiniteScroll);
     window.addEventListener("scroll", handleScroll);
   </script>
 </body>
