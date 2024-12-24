@@ -34,7 +34,7 @@
     .floating-square {
       position: fixed;
       width: 320px;
-      height: 360px;
+      height: 350px;
       background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
@@ -119,19 +119,6 @@
     });
   }
 
-  // Infinite scroll logic
-  async function infiniteScroll() {
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-      loaderDiv.style.display = "block"; // Show loader
-
-      // Fetch and render new posts
-      const newPosts = await fetchPosts();
-      renderPosts(newPosts);
-
-      loaderDiv.style.display = "none"; // Hide loader
-    }
-  }
-
   // Scroll color change logic
   function handleScroll() {
     const middleY = document.body.scrollHeight / 2;
@@ -171,7 +158,6 @@
   })();
 
   // Event listeners
-  window.addEventListener("scroll", infiniteScroll);
   window.addEventListener("scroll", handleScroll); // Decouple color change from constantScroll
 </script>
 
