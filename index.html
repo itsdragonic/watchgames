@@ -2,115 +2,119 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Infinite Scroll with Moving Square</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Infinite Scroll with Constant ScrollTo</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      height: 50000px;
       background-color: #f4f4f4;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .post {
+      background: #fff;
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .loader {
+      text-align: center;
+      font-size: 16px;
+      padding: 10px;
+      display: none;
     }
 
     .floating-square {
       position: fixed;
-      width: 325px;
-      height: 360px;
+      width: 320px;
+      height: 380px;
       background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
-      transform: translate(-50%, calc(-50% - 20px)); /* Idle state is 20px up */
+      transform: translate(-50%, calc(-50% - 20px));
       transition: transform 0.2s ease-in-out;
-    }
-
-    .rectangle {
-        position: absolute;
-        width: 20px;
-        height: 60px;
-        background: #000;
-        border-radius: 20px;
-        transform: translate(0, 0); /* No translation needed since offsets are manually added */
-    }
-
-    #player {
-        top: 100px; /* Centered vertically with an offset */
-        left: calc(85%); /* Centered horizontally with an offset */
-    }
-
-    #ai {
-        top: 100px; /* Centered vertically with an offset */
-        left: calc(10%); /* Centered horizontally with an offset */
-    }
-
-    .circle {
-        position: absolute; /* Keeps the circle visually in the center */
-        width: 30px;
-        height: 30px;
-        background-color: red;
-        border-radius: 50%;
-        top: 150px;
-        left: 45%;
-        /*transform: translate(-50%, -50%);*/
     }
   </style>
 </head>
 <body>
-  <div id="floatingSquare" class="floating-square">
-    <div id="player" class="rectangle"></div>
-    <div id="ai" class="rectangle"></div>
-    <div class="circle"></div>
+  <div id="content" class="content">
+    <!-- Initial content will load here -->
   </div>
+  <div id="loader" class="loader">Loading...</div>
+  <div id="floatingSquare" class="floating-square"></div>
 
   <script>
+    const contentDiv = document.getElementById("content");
+    const loaderDiv = document.getElementById("loader");
     const floatingSquare = document.getElementById("floatingSquare");
 
-    let isScrolling = false;
+    let postCount = 0;
 
-    window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'instant' });
-
-    var tops = 100;
-    var player = document.getElementById('player');
-    var ball = document.querySelector('.circle');
-
-    // Logic for floating square movement
-    function handleScroll() {
-      if (!isScrolling) {
-        isScrolling = true;
-
-        // Reset to centered position during scroll
-        floatingSquare.style.transform = `translate(-50%, -50%)`;
-      }
-
-      const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
-
-      if (window.scrollY > middleY + 1) { // for movements up
-          ball.style.backgroundColor = 'green';
-          tops -= 15;
-      } else if (window.scrollY < middleY - 1) { // for movements down
-          ball.style.backgroundColor = 'blue';
-          tops += 15;
-      }
-
-      // upper and lower bounds
-      if (tops < 0) {tops = 0;}
-      if (tops > 300) {tops = 300;}
-      
-      player.style.top = `${tops}px`;
-
-      // Stop movement shortly after scrolling ends
-      clearTimeout(handleScroll.timeout);
-      handleScroll.timeout = setTimeout(() => {
-        isScrolling = false;
-
-        // Return to idle state 20px higher
-        floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
-        window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
-      }, 150); // Timeout duration
+    // Function to fetch data (simulated backend API call)
+    function fetchPosts() {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          const posts = [];
+          for (let i = 0; i < 5; i++) {
+            postCount++;
+            posts.push(`Post #${postCount}`);
+          }
+          resolve(posts);
+        }, 1000); // Simulate network delay
+      });
     }
 
+    // Function to render posts
+    function renderPosts(posts) {
+      posts.forEach((post) => {
+        const postDiv = document.createElement("div");
+        postDiv.className = "post";
+        postDiv.textContent = post;
+        contentDiv.appendChild(postDiv);
+      });
+    }
+
+    // Infinite scroll logic
+    async function infiniteScroll() {
+      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+        loaderDiv.style.display = "block"; // Show loader
+
+        // Fetch and render new posts
+        const newPosts = await fetchPosts();
+        renderPosts(newPosts);
+
+        loaderDiv.style.display = "none"; // Hide loader
+      }
+    }
+
+    // Constantly running scroll command
+    function constantScroll() {
+      window.scrollTo({
+        top: document.body.scrollHeight / 2,
+        left: -80,
+        behavior: 'instant',
+      });
+      requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
+    }
+
+    // Initial content load
+    (async function init() {
+      const initialPosts = await fetchPosts();
+      renderPosts(initialPosts);
+
+      // Start constant scrolling
+      constantScroll();
+    })();
+
     // Event listeners
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", infiniteScroll);
   </script>
 </body>
 </html>
