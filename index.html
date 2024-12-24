@@ -203,15 +203,22 @@
 
     if (window.scrollY > middleY + 1) {
       ball.style.backgroundColor = 'green'; // Scrolling down
-      playerSpeed = 4;
+      playerSpeed = -5;
     } else if (window.scrollY < middleY - 1) {
       ball.style.backgroundColor = 'blue'; // Scrolling up
-      playerSpeed = -4;
+      playerSpeed = 5;
+    } else {
+      playerSpeed = 0;
     }
-    
+  }
+  
+  function gameLoop() {
     movePaddles();
     moveBall();
+    requestAnimationFrame(gameLoop);
   }
+  
+  setInterval(gameLoop(),20);
 
   // Constantly running scroll command
   function constantScroll() {
