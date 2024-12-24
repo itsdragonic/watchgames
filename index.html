@@ -103,7 +103,7 @@
   <div id="loader" class="loader">Loading...</div>
 
   <div id="scoreboard">
-    <span>Score: 0</span>
+    <span id="aiScore">0</span> - <span id="playerScore">0</span>
   </div>
   
   <div id="floatingSquare" class="floating-square">
@@ -125,6 +125,8 @@
   const player = document.getElementById("player");
   const ai = document.getElementById("ai");
   const ball = document.getElementById("ball");
+  const playerScoreEl = document.getElementById("playerScore");
+  const aiScoreEl = document.getElementById("aiScore");
 
   let ballSpeedX = 2;
   let ballSpeedY = 2;
@@ -139,6 +141,9 @@
 
   let playerY = 150;
   let aiY = 150;
+
+  let playerScore = 0;
+  let aiScore = 0;
 
   // Function to fetch data (simulated backend API call)
   function fetchPosts() {
