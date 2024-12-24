@@ -9,7 +9,7 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      background-color: #f4f4f4;
+      background-color: #ff0000;
     }
 
     .content {
@@ -34,7 +34,7 @@
     .floating-square {
       position: fixed;
       width: 320px;
-      height: 380px;
+      height: 360px;
       background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
@@ -53,12 +53,12 @@
 
     #player {
         top: 100px; /* Centered vertically with an offset */
-        left: calc(85%); /* Centered horizontally with an offset */
+        left: calc(90%); /* Centered horizontally with an offset */
     }
 
     #ai {
         top: 100px; /* Centered vertically with an offset */
-        left: calc(10%); /* Centered horizontally with an offset */
+        left: calc(8%); /* Centered horizontally with an offset */
     }
 
     .circle {
@@ -146,7 +146,7 @@
 
     // Upper and lower bounds
     if (tops < 0) tops = 0;
-    if (tops > 300) tops = 300;
+    if (tops > 280) tops = 280;
 
     player.style.top = `${tops}px`;
   }
