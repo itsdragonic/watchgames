@@ -41,6 +41,36 @@
       transform: translate(-50%, calc(-50% - 20px)); /* Idle state is 20px up */
       transition: transform 0.2s ease-in-out;
     }
+
+    .rectangle {
+          position: absolute;
+          width: 20px;
+          height: 60px;
+          background: #000;
+          border-radius: 20px;
+          transform: translate(0, 0); /* No translation needed since offsets are manually added */
+      }
+
+      #player {
+          top: 100px; /* Centered vertically with an offset */
+          left: calc(85% - 20px); /* Centered horizontally with an offset */
+      }
+
+      #ai {
+          top: 100px; /* Centered vertically with an offset */
+          left: calc(10% - 25px); /* Centered horizontally with an offset */
+      }
+
+      .circle {
+          position: absolute; /* Keeps the circle visually in the center */
+          width: 30px;
+          height: 30px;
+          background-color: red;
+          border-radius: 50%;
+          top: 150px;
+          left: 45%;
+          /*transform: translate(-50%, -50%);*/
+      }
   </style>
 </head>
 <body>
@@ -48,7 +78,11 @@
     <!-- Initial content will load here -->
   </div>
   <div id="loader" class="loader">Loading...</div>
-  <div id="floatingSquare" class="floating-square"></div>
+  <div id="floatingSquare" class="floating-square">
+    <div id="player" class="rectangle"></div>
+    <div id="ai" class="rectangle"></div>
+    <div class="circle"></div>
+  </div>
 
   <script>
     const contentDiv = document.getElementById("content");
