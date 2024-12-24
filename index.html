@@ -30,6 +30,17 @@
       padding: 10px;
       display: none;
     }
+    
+    #scoreboard {
+      position: absolute;
+      width: 300px;
+      height: 70px;
+      border-radius: 8px;
+      background: #000;
+      top: calc(50% - 200px);
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
 
     .floating-square {
       position: fixed;
@@ -78,6 +89,8 @@
     <!-- Initial content will load here -->
   </div>
   <div id="loader" class="loader">Loading...</div>
+  
+  <div id="scoreboard"></div>
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
