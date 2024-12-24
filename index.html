@@ -3,16 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinite Scroll with Constant ScrollTo</title>
+  <title>Pong Game</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      height: 5000px;
       background-color: #ff0000;
     }
-    
+
+    .content {
+      padding: 20px;
+    }
+
+    .post {
+      background: #fff;
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .loader {
+      text-align: center;
+      font-size: 16px;
+      padding: 10px;
+      display: none;
+    }
+
     .floating-square {
       position: fixed;
       width: 320px;
@@ -21,86 +39,135 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, calc(-50% - 20px));
-      transition: transform 0.2s ease-in-out;
+      overflow: hidden;
     }
 
     .rectangle {
-        position: absolute;
-        width: 20px;
-        height: 60px;
-        background: #000;
-        border-radius: 20px;
-        transform: translate(0, 0); /* No translation needed since offsets are manually added */
+      position: absolute;
+      width: 20px;
+      height: 60px;
+      background: #000;
+      border-radius: 20px;
     }
 
     #player {
-        top: 100px; /* Centered vertically with an offset */
-        left: calc(90%); /* Centered horizontally with an offset */
+      top: 150px;
+      left: calc(90%);
     }
 
     #ai {
-        top: 100px; /* Centered vertically with an offset */
-        left: calc(8%); /* Centered horizontally with an offset */
+      top: 150px;
+      left: calc(8%);
     }
 
     .circle {
-        position: absolute; /* Keeps the circle visually in the center */
-        width: 30px;
-        height: 30px;
-        background-color: red;
-        border-radius: 50%;
-        top: 150px;
-        left: 45%;
-        /*transform: translate(-50%, -50%);*/
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: red;
+      border-radius: 50%;
+      top: 170px;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
   </style>
 </head>
 <body>
+  <div id="content" class="content">
+    <!-- Initial content -->
+  </div>
+  <div id="loader" class="loader">Loading...</div>
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
-    <div class="circle"></div>
+    <div id="ball" class="circle"></div>
   </div>
 
 <script>
-  const floatingSquare = document.getElementById("floatingSquare");
+  const player = document.getElementById("player");
+  const ai = document.getElementById("ai");
+  const ball = document.getElementById("ball");
 
-  var tops = 100;
-  var player = document.getElementById('player');
-  var ball = document.querySelector('.circle');
+  let ballSpeedX = 2;
+  let ballSpeedY = 2;
+  let ballPosX = floatingSquare.offsetWidth / 2;
+  let ballPosY = floatingSquare.offsetHeight / 2;
 
-  // Scroll color change logic
-  function handleScroll() {
-    const middleY = document.body.scrollHeight / 2;
+  let playerSpeed = 0;
+  let aiSpeed = 1;
 
-    if (window.scrollY > middleY + 1) {
-      ball.style.backgroundColor = 'green'; // Scrolling down
-      tops -= 15;
-    } else if (window.scrollY < middleY - 1) {
-      ball.style.backgroundColor = 'blue'; // Scrolling up
-      tops += 15;
+  const squareHeight = floatingSquare.offsetHeight;
+  const squareWidth = floatingSquare.offsetWidth;
+
+  let playerY = 150;
+  let aiY = 150;
+
+  // Function to move paddles
+  function movePaddles() {
+    playerY += playerSpeed;
+    if (playerY < 0) playerY = 0;
+    if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
+    player.style.top = playerY + "px";
+
+    aiY += aiSpeed;
+    if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
+    ai.style.top = aiY + "px";
+  }
+
+  // Function to move the ball
+  function moveBall() {
+    ballPosX += ballSpeedX;
+    ballPosY += ballSpeedY;
+
+    // Collision with top or bottom walls
+    if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
+      ballSpeedY *= -1;
     }
 
-    // Upper and lower bounds
-    if (tops < 0) tops = 0;
-    if (tops > 280) tops = 280;
+    // Collision with paddles
+    const playerCollision =
+      ballPosX + ball.offsetWidth >= player.offsetLeft &&
+      ballPosY >= playerY &&
+      ballPosY <= playerY + player.offsetHeight;
 
-    player.style.top = `${tops}px`;
+    const aiCollision =
+      ballPosX <= ai.offsetLeft + ai.offsetWidth &&
+      ballPosY >= aiY &&
+      ballPosY <= aiY + ai.offsetHeight;
 
+    if (playerCollision || aiCollision) {
+      ballSpeedX *= -1;
+    }
+
+    // Reset ball if it goes out of bounds
+    if (ballPosX <= 0 || ballPosX >= squareWidth) {
+      ballPosX = squareWidth / 2;
+      ballPosY = squareHeight / 2;
+      ballSpeedX *= -1; // Reverse direction
+    }
+
+    ball.style.left = ballPosX + "px";
+    ball.style.top = ballPosY + "px";
   }
 
-  // Constantly running scroll command
-  function constantScroll() {
-    window.scrollTo({
-      top: document.body.scrollHeight / 2,
-      behavior: 'instant',
-    });
+  // Event listener for player control
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowUp") playerSpeed = -4;
+    if (e.key === "ArrowDown") playerSpeed = 4;
+  });
 
-    requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
+  document.addEventListener("keyup", () => {
+    playerSpeed = 0;
+  });
+
+  // Game loop
+  function gameLoop() {
+    movePaddles();
+    moveBall();
+    requestAnimationFrame(gameLoop);
   }
 
-  // Event listeners
-  window.addEventListener("scroll", handleScroll);
+  gameLoop();
 </script>
 
 </body>
