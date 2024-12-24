@@ -9,7 +9,7 @@
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      5000px;
+      height: 5000px;
       background-color: #ff0000;
     }
     
@@ -86,6 +86,11 @@
     if (tops > 280) tops = 280;
 
     player.style.top = `${tops}px`;
+
+    window.scrollTo({
+      top: document.body.scrollHeight / 2,
+      behavior: 'instant',
+    });
   }
 
   // Constantly running scroll command
