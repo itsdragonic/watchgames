@@ -84,91 +84,96 @@
     <div class="circle"></div>
   </div>
 
-  <script>
-    const contentDiv = document.getElementById("content");
-    const loaderDiv = document.getElementById("loader");
-    const floatingSquare = document.getElementById("floatingSquare");
+<script>
+  const contentDiv = document.getElementById("content");
+  const loaderDiv = document.getElementById("loader");
+  const floatingSquare = document.getElementById("floatingSquare");
 
-    let postCount = 0;
+  let postCount = 0;
 
-    var tops = 100;
-    var player = document.getElementById('player');
-    var ball = document.querySelector('.circle');
+  var tops = 100;
+  var player = document.getElementById('player');
+  var ball = document.querySelector('.circle');
 
-    // Function to fetch data (simulated backend API call)
-    function fetchPosts() {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          const posts = [];
-          for (let i = 0; i < 5; i++) {
-            postCount++;
-            posts.push(`Post #${postCount}`);
-          }
-          resolve(posts);
-        }, 1000); // Simulate network delay
-      });
+  // Function to fetch data (simulated backend API call)
+  function fetchPosts() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const posts = [];
+        for (let i = 0; i < 5; i++) {
+          postCount++;
+          posts.push(`Post #${postCount}`);
+        }
+        resolve(posts);
+      }, 1000); // Simulate network delay
+    });
+  }
+
+  // Function to render posts
+  function renderPosts(posts) {
+    posts.forEach((post) => {
+      const postDiv = document.createElement("div");
+      postDiv.className = "post";
+      postDiv.textContent = post;
+      contentDiv.appendChild(postDiv);
+    });
+  }
+
+  // Infinite scroll logic
+  async function infiniteScroll() {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loaderDiv.style.display = "block"; // Show loader
+
+      // Fetch and render new posts
+      const newPosts = await fetchPosts();
+      renderPosts(newPosts);
+
+      loaderDiv.style.display = "none"; // Hide loader
+    }
+  }
+
+  // Scroll color change logic
+  function handleScroll() {
+    const middleY = document.body.scrollHeight / 2;
+
+    if (window.scrollY > middleY + 1) {
+      ball.style.backgroundColor = 'green'; // Scrolling down
+      tops -= 15;
+    } else if (window.scrollY < middleY - 1) {
+      ball.style.backgroundColor = 'blue'; // Scrolling up
+      tops += 15;
     }
 
-    // Function to render posts
-    function renderPosts(posts) {
-      posts.forEach((post) => {
-        const postDiv = document.createElement("div");
-        postDiv.className = "post";
-        postDiv.textContent = post;
-        contentDiv.appendChild(postDiv);
-      });
-    }
+    // Upper and lower bounds
+    if (tops < 0) tops = 0;
+    if (tops > 300) tops = 300;
 
-    // Infinite scroll logic
-    async function infiniteScroll() {
-      if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-        loaderDiv.style.display = "block"; // Show loader
+    player.style.top = `${tops}px`;
+  }
 
-        // Fetch and render new posts
-        const newPosts = await fetchPosts();
-        renderPosts(newPosts);
+  // Constantly running scroll command
+  function constantScroll() {
+    window.scrollTo({
+      top: document.body.scrollHeight / 2,
+      behavior: 'instant',
+    });
 
-        loaderDiv.style.display = "none"; // Hide loader
-      }
-    }
+    requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
+  }
 
-    // Constantly running scroll command
-    function constantScroll() {
-      window.scrollTo({
-        top: document.body.scrollHeight / 2,
-        behavior: 'instant',
-      });
+  // Initial content load
+  (async function init() {
+    const initialPosts = await fetchPosts();
+    renderPosts(initialPosts);
 
-      const middleY = document.body.scrollHeight / 2; // Adjusted to use dynamic page height
+    // Start constant scrolling
+    constantScroll();
+  })();
 
-      if (window.scrollY > middleY + 1) { // for movements up
-          ball.style.backgroundColor = 'green';
-          tops -= 15;
-      } else if (window.scrollY < middleY - 1) { // for movements down
-          ball.style.backgroundColor = 'blue';
-          tops += 15;
-      }
+  // Event listeners
+  window.addEventListener("scroll", infiniteScroll);
+  window.addEventListener("scroll", handleScroll); // Decouple color change from constantScroll
+</script>
 
-      // upper and lower bounds
-      if (tops < 0) {tops = 0;}
-      if (tops > 300) {tops = 300;}
-      
-      player.style.top = `${tops}px`;
-
-      requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
-    }
-
-    // Initial content load
-    (async function init() {
-      const initialPosts = await fetchPosts();
-      renderPosts(initialPosts);
-
-      // Start constant scrolling
-      constantScroll();
-    })();
-
-    // Event listeners
-    window.addEventListener("scroll", infiniteScroll);
-  </script>
 </body>
 </html>
