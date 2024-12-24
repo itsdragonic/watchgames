@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pong Game</title>
+  <title>Infinite Scroll with Constant ScrollTo</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -39,135 +39,140 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, calc(-50% - 20px));
-      overflow: hidden;
+      transition: transform 0.2s ease-in-out;
     }
 
     .rectangle {
-      position: absolute;
-      width: 20px;
-      height: 60px;
-      background: #000;
-      border-radius: 20px;
+        position: absolute;
+        width: 20px;
+        height: 60px;
+        background: #000;
+        border-radius: 20px;
+        transform: translate(0, 0); /* No translation needed since offsets are manually added */
     }
 
     #player {
-      top: 150px;
-      left: calc(90%);
+        top: 100px; /* Centered vertically with an offset */
+        left: calc(90%); /* Centered horizontally with an offset */
     }
 
     #ai {
-      top: 150px;
-      left: calc(8%);
+        top: 100px; /* Centered vertically with an offset */
+        left: calc(8%); /* Centered horizontally with an offset */
     }
 
     .circle {
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background-color: red;
-      border-radius: 50%;
-      top: 170px;
-      left: 50%;
-      transform: translate(-50%, -50%);
+        position: absolute; /* Keeps the circle visually in the center */
+        width: 30px;
+        height: 30px;
+        background-color: red;
+        border-radius: 50%;
+        top: 150px;
+        left: 45%;
+        /*transform: translate(-50%, -50%);*/
     }
   </style>
 </head>
 <body>
   <div id="content" class="content">
-    <!-- Initial content -->
+    <!-- Initial content will load here -->
   </div>
   <div id="loader" class="loader">Loading...</div>
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
-    <div id="ball" class="circle"></div>
+    <div class="circle"></div>
   </div>
 
 <script>
-  const player = document.getElementById("player");
-  const ai = document.getElementById("ai");
-  const ball = document.getElementById("ball");
+  const contentDiv = document.getElementById("content");
+  const loaderDiv = document.getElementById("loader");
+  const floatingSquare = document.getElementById("floatingSquare");
 
-  let ballSpeedX = 2;
-  let ballSpeedY = 2;
-  let ballPosX = floatingSquare.offsetWidth / 2;
-  let ballPosY = floatingSquare.offsetHeight / 2;
+  let postCount = 0;
 
-  let playerSpeed = 0;
-  let aiSpeed = 1;
+  var tops = 100;
+  var player = document.getElementById('player');
+  var ball = document.querySelector('.circle');
 
-  const squareHeight = floatingSquare.offsetHeight;
-  const squareWidth = floatingSquare.offsetWidth;
-
-  let playerY = 150;
-  let aiY = 150;
-
-  // Function to move paddles
-  function movePaddles() {
-    playerY += playerSpeed;
-    if (playerY < 0) playerY = 0;
-    if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
-    player.style.top = playerY + "px";
-
-    aiY += aiSpeed;
-    if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
-    ai.style.top = aiY + "px";
+  // Function to fetch data (simulated backend API call)
+  function fetchPosts() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const posts = [];
+        for (let i = 0; i < 5; i++) {
+          postCount++;
+          posts.push(`Post #${postCount}`);
+        }
+        resolve(posts);
+      }, 1000); // Simulate network delay
+    });
   }
 
-  // Function to move the ball
-  function moveBall() {
-    ballPosX += ballSpeedX;
-    ballPosY += ballSpeedY;
-
-    // Collision with top or bottom walls
-    if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
-      ballSpeedY *= -1;
-    }
-
-    // Collision with paddles
-    const playerCollision =
-      ballPosX + ball.offsetWidth >= player.offsetLeft &&
-      ballPosY >= playerY &&
-      ballPosY <= playerY + player.offsetHeight;
-
-    const aiCollision =
-      ballPosX <= ai.offsetLeft + ai.offsetWidth &&
-      ballPosY >= aiY &&
-      ballPosY <= aiY + ai.offsetHeight;
-
-    if (playerCollision || aiCollision) {
-      ballSpeedX *= -1;
-    }
-
-    // Reset ball if it goes out of bounds
-    if (ballPosX <= 0 || ballPosX >= squareWidth) {
-      ballPosX = squareWidth / 2;
-      ballPosY = squareHeight / 2;
-      ballSpeedX *= -1; // Reverse direction
-    }
-
-    ball.style.left = ballPosX + "px";
-    ball.style.top = ballPosY + "px";
+  // Function to render posts
+  function renderPosts(posts) {
+    posts.forEach((post) => {
+      const postDiv = document.createElement("div");
+      postDiv.className = "post";
+      postDiv.textContent = post;
+      contentDiv.appendChild(postDiv);
+    });
   }
 
-  // Event listener for player control
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "ArrowUp") playerSpeed = -4;
-    if (e.key === "ArrowDown") playerSpeed = 4;
-  });
+  // Infinite scroll logic
+  async function infiniteScroll() {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loaderDiv.style.display = "block"; // Show loader
 
-  document.addEventListener("keyup", () => {
-    playerSpeed = 0;
-  });
+      // Fetch and render new posts
+      const newPosts = await fetchPosts();
+      renderPosts(newPosts);
 
-  // Game loop
-  function gameLoop() {
-    movePaddles();
-    moveBall();
-    requestAnimationFrame(gameLoop);
+      loaderDiv.style.display = "none"; // Hide loader
+    }
   }
 
-  gameLoop();
+  // Scroll color change logic
+  function handleScroll() {
+    const middleY = document.body.scrollHeight / 2;
+
+    if (window.scrollY > middleY + 1) {
+      ball.style.backgroundColor = 'green'; // Scrolling down
+      tops -= 15;
+    } else if (window.scrollY < middleY - 1) {
+      ball.style.backgroundColor = 'blue'; // Scrolling up
+      tops += 15;
+    }
+
+    // Upper and lower bounds
+    if (tops < 0) tops = 0;
+    if (tops > 280) tops = 280;
+
+    player.style.top = `${tops}px`;
+  }
+
+  // Constantly running scroll command
+  function constantScroll() {
+    window.scrollTo({
+      top: document.body.scrollHeight / 2,
+      behavior: 'instant',
+    });
+
+    requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
+  }
+
+  // Initial content load
+  (async function init() {
+    const initialPosts = await fetchPosts();
+    renderPosts(initialPosts);
+
+    // Start constant scrolling
+    constantScroll();
+  })();
+
+  // Event listeners
+  window.addEventListener("scroll", infiniteScroll);
+  window.addEventListener("scroll", handleScroll); // Decouple color change from constantScroll
 </script>
 
 </body>
