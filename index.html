@@ -12,25 +12,6 @@
       background-color: #ff0000;
     }
 
-    .content {
-      padding: 20px;
-    }
-
-    .post {
-      background: #fff;
-      margin: 20px 0;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .loader {
-      text-align: center;
-      font-size: 16px;
-      padding: 10px;
-      display: none;
-    }
-
     .floating-square {
       position: fixed;
       width: 320px;
@@ -74,10 +55,6 @@
   </style>
 </head>
 <body>
-  <div id="content" class="content">
-    <!-- Initial content will load here -->
-  </div>
-  <div id="loader" class="loader">Loading...</div>
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
@@ -94,43 +71,6 @@
   var tops = 100;
   var player = document.getElementById('player');
   var ball = document.querySelector('.circle');
-
-  // Function to fetch data (simulated backend API call)
-  function fetchPosts() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const posts = [];
-        for (let i = 0; i < 5; i++) {
-          postCount++;
-          posts.push(`Post #${postCount}`);
-        }
-        resolve(posts);
-      }, 1000); // Simulate network delay
-    });
-  }
-
-  // Function to render posts
-  function renderPosts(posts) {
-    posts.forEach((post) => {
-      const postDiv = document.createElement("div");
-      postDiv.className = "post";
-      postDiv.textContent = post;
-      contentDiv.appendChild(postDiv);
-    });
-  }
-
-  // Infinite scroll logic
-  async function infiniteScroll() {
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-      loaderDiv.style.display = "block"; // Show loader
-
-      // Fetch and render new posts
-      const newPosts = await fetchPosts();
-      renderPosts(newPosts);
-
-      loaderDiv.style.display = "none"; // Hide loader
-    }
-  }
 
   // Scroll color change logic
   function handleScroll() {
@@ -160,18 +100,7 @@
 
     requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
   }
-
-  // Initial content load
-  (async function init() {
-    const initialPosts = await fetchPosts();
-    renderPosts(initialPosts);
-
-    // Start constant scrolling
-    constantScroll();
-  })();
-
   // Event listeners
-  window.addEventListener("scroll", infiniteScroll);
   window.addEventListener("scroll", handleScroll); // Decouple color change from constantScroll
 </script>
 
