@@ -2,56 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinite Scroll with Constant ScrollTo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Scroll with Moving Square</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 0;
-      height: 10000px;
-      background-color: #ff0000;
+      background-color: #f4f4f4;
     }
 
     .floating-square {
       position: fixed;
-      width: 320px;
-      height: 360px;
+      width: 330px;
+      height: 370px;
       background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
-      transform: translate(-50%, calc(-50% - 20px));
+      transform: translate(-50%, calc(-50% - 20px)); /* Idle state is 20px up */
       transition: transform 0.2s ease-in-out;
     }
 
     .rectangle {
-        position: absolute;
-        width: 20px;
-        height: 60px;
-        background: #000;
-        border-radius: 20px;
-        transform: translate(0, 0); /* No translation needed since offsets are manually added */
+      position: absolute;
+      width: 20px;
+      height: 60px;
+      background: #000;
+      border-radius: 20px;
     }
 
     #player {
-        top: 100px; /* Centered vertically with an offset */
-        left: calc(90%); /* Centered horizontally with an offset */
+      top: 100px; /* Positioned vertically */
+      left: calc(85% - 20px); /* Positioned horizontally */
     }
 
     #ai {
-        top: 100px; /* Centered vertically with an offset */
-        left: calc(8%); /* Centered horizontally with an offset */
+      top: 100px; /* Positioned vertically */
+      left: calc(10% - 25px); /* Positioned horizontally */
     }
 
     .circle {
-        position: absolute; /* Keeps the circle visually in the center */
-        width: 30px;
-        height: 30px;
-        background-color: red;
-        border-radius: 50%;
-        top: 150px;
-        left: 45%;
-        /*transform: translate(-50%, -50%);*/
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      background-color: red;
+      border-radius: 50%;
+      top: 150px;
+      left: 45%;
     }
   </style>
 </head>
@@ -62,48 +59,35 @@
     <div class="circle"></div>
   </div>
 
-<script>
-  const contentDiv = document.getElementById("content");
-  const loaderDiv = document.getElementById("loader");
-  const floatingSquare = document.getElementById("floatingSquare");
+  <script>
+    const floatingSquare = document.getElementById("floatingSquare");
+    let isScrolling = false;
 
-  let postCount = 0;
+    // Logic for floating square movement
+    function handleScroll() {
+      if (!isScrolling) {
+        isScrolling = true;
 
-  var tops = 100;
-  var player = document.getElementById('player');
-  var ball = document.querySelector('.circle');
+        // Reset to centered position during scroll
+        floatingSquare.style.transform = `translate(-50%, -50%)`;
+      }
 
-  // Scroll color change logic
-  function handleScroll() {
-    const middleY = document.body.scrollHeight / 2;
+      // Stop movement shortly after scrolling ends
+      clearTimeout(handleScroll.timeout);
+      handleScroll.timeout = setTimeout(() => {
+        isScrolling = false;
 
-    if (window.scrollY > middleY + 1) {
-      ball.style.backgroundColor = 'green'; // Scrolling down
-      tops -= 15;
-    } else if (window.scrollY < middleY - 1) {
-      ball.style.backgroundColor = 'blue'; // Scrolling up
-      tops += 15;
+        // Return to idle state 20px higher
+        floatingSquare.style.transform = `translate(-50%, calc(-50% - 20px))`;
+        window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'smooth' });
+      }, 150); // Timeout duration
     }
 
-    // Upper and lower bounds
-    if (tops < 0) tops = 0;
-    if (tops > 280) tops = 280;
+    // Initial centering of the scroll position
+    window.scrollTo({ top: document.body.scrollHeight / 2, behavior: 'instant' });
 
-    player.style.top = `${tops}px`;
-  }
-
-  // Constantly running scroll command
-  function constantScroll() {
-    window.scrollTo({
-      top: document.body.scrollHeight / 2,
-      behavior: 'instant',
-    });
-
-    requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
-  }
-  // Event listeners
-  window.addEventListener("scroll", handleScroll); // Decouple color change from constantScroll
-</script>
-
+    // Event listeners
+    window.addEventListener("scroll", handleScroll);
+  </script>
 </body>
 </html>
