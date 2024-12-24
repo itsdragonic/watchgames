@@ -155,6 +155,10 @@
           tops += 15;
       }
 
+      // upper and lower bounds
+      if (tops < 0) {tops == 0;}
+      if (tops > 310) {tops == 310;}
+      
       player.style.top = `${tops}px`;
 
       // Stop movement shortly after scrolling ends
