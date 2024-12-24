@@ -156,8 +156,8 @@
       }
 
       // upper and lower bounds
-      if (tops < 50) {tops == 50;}
-      if (tops > 200) {tops == 200;}
+      if (tops < 0) {tops = 0;}
+      if (tops > 300) {tops = 300;}
       
       player.style.top = `${tops}px`;
 
