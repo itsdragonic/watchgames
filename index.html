@@ -81,7 +81,7 @@
   <div id="floatingSquare" class="floating-square">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
-    <div class="circle"></div>
+    <div id="ball" class="circle"></div>
   </div>
 
 <script>
@@ -92,8 +92,25 @@
   let postCount = 0;
 
   var tops = 100;
-  var player = document.getElementById('player');
-  var ball = document.querySelector('.circle');
+  
+  // variables for pong
+  const player = document.getElementById("player");
+  const ai = document.getElementById("ai");
+  const ball = document.getElementById("ball");
+
+  let ballSpeedX = 2;
+  let ballSpeedY = 2;
+  let ballPosX = floatingSquare.offsetWidth / 2;
+  let ballPosY = floatingSquare.offsetHeight / 2;
+
+  let playerSpeed = 0;
+  let aiSpeed = 1;
+
+  const squareHeight = floatingSquare.offsetHeight;
+  const squareWidth = floatingSquare.offsetWidth;
+
+  let playerY = 150;
+  let aiY = 150;
 
   // Function to fetch data (simulated backend API call)
   function fetchPosts() {
@@ -119,23 +136,81 @@
     });
   }
 
+  // Infinite scroll logic
+  async function infiniteScroll() {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loaderDiv.style.display = "block"; // Show loader
+
+      // Fetch and render new posts
+      const newPosts = await fetchPosts();
+      renderPosts(newPosts);
+
+      loaderDiv.style.display = "none"; // Hide loader
+    }
+  }
+  
+    // Function to move paddles
+  function movePaddles() {
+    playerY += playerSpeed;
+    if (playerY < 0) playerY = 0;
+    if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
+    player.style.top = playerY + "px";
+
+    aiY += aiSpeed;
+    if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
+    ai.style.top = aiY + "px";
+  }
+
+  // Function to move the ball
+  function moveBall() {
+    ballPosX += ballSpeedX;
+    ballPosY += ballSpeedY;
+
+    // Collision with top or bottom walls
+    if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
+      ballSpeedY *= -1;
+    }
+
+    // Collision with paddles
+    const playerCollision =
+      ballPosX + ball.offsetWidth >= player.offsetLeft &&
+      ballPosY >= playerY &&
+      ballPosY <= playerY + player.offsetHeight;
+
+    const aiCollision =
+      ballPosX <= ai.offsetLeft + ai.offsetWidth &&
+      ballPosY >= aiY &&
+      ballPosY <= aiY + ai.offsetHeight;
+
+    if (playerCollision || aiCollision) {
+      ballSpeedX *= -1;
+    }
+
+    // Reset ball if it goes out of bounds
+    if (ballPosX <= 0 || ballPosX >= squareWidth) {
+      ballPosX = squareWidth / 2;
+      ballPosY = squareHeight / 2;
+      ballSpeedX *= -1; // Reverse direction
+    }
+
+    ball.style.left = ballPosX + "px";
+    ball.style.top = ballPosY + "px";
+  }
+
   // Scroll color change logic
   function handleScroll() {
     const middleY = document.body.scrollHeight / 2;
 
     if (window.scrollY > middleY + 1) {
       ball.style.backgroundColor = 'green'; // Scrolling down
-      tops -= 15;
+      playerSpeed = 4;
     } else if (window.scrollY < middleY - 1) {
       ball.style.backgroundColor = 'blue'; // Scrolling up
-      tops += 15;
+      playerSpeed = -4;
     }
-
-    // Upper and lower bounds
-    if (tops < 0) tops = 0;
-    if (tops > 280) tops = 280;
-
-    player.style.top = `${tops}px`;
+    
+    movePaddles();
+    moveBall();
   }
 
   // Constantly running scroll command
@@ -158,6 +233,7 @@
   })();
 
   // Event listeners
+  window.addEventListener("scroll", infiniteScroll);
   window.addEventListener("scroll", handleScroll); // Decouple color change from constantScroll
 </script>
 
