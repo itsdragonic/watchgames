@@ -218,6 +218,10 @@
 
   const squareHeight = backboard.offsetHeight;
   const squareWidth = backboard.offsetWidth;
+  
+  const paddleWidth = player.offsetHeight;
+  const paddleHeight = player.offsetWidth;
+  const ballRadius = ball.offsetWidth / 2;
 
   let playerY = 150;
   let aiY = 150;
@@ -225,6 +229,22 @@
   let playerScore = 0;
   let aiScore = 0;
   
+  // Escape Paddle Logic
+  function escapePaddle() {
+    while (
+      // Player paddle collision conditions
+      (ballPosX + ballRadius >= player.offsetLeft &&
+        ballPosY >= playerY &&
+        ballPosY <= playerY + paddleWidth) ||
+      // AI paddle collision conditions
+      (ballPosX - ballRadius <= ai.offsetLeft + paddleHeight &&
+        ballPosY >= aiY &&
+        ballPosY <= aiY + paddleWidth)
+    ) {
+      ballPosX += ballSpeedX;
+      ballPosY += ballSpeedY;
+    }
+  }
 
   function movePaddles() {
     playerY += playerSpeed;
@@ -259,6 +279,7 @@
 
     if (playerCollision || aiCollision) {
       ballSpeedX *= -1;
+      escapePaddle();
     }
 
     // Ball out of bounds logic
