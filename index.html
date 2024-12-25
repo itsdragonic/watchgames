@@ -199,145 +199,130 @@
   ///////////////////////////////////////////////////
   /* <The actual code starts here> */
   
-  const backboard = document.getElementById("backboard");
-  
-  // variables for pong
-  const player = document.getElementById("player");
-  const ai = document.getElementById("ai");
-  const ball = document.getElementById("ball");
-  const playerScoreEl = document.getElementById("playerScore");
-  const aiScoreEl = document.getElementById("aiScore");
+const backboard = document.getElementById("backboard");
 
-  let ballSpeedX = 3;
-  let ballSpeedY = 3;
-  let ballPosX = backboard.offsetWidth / 2;
-  let ballPosY = backboard.offsetHeight / 2;
+// Variables for pong
+const player = document.getElementById("player");
+const ai = document.getElementById("ai");
+const ball = document.getElementById("ball");
+const playerScoreEl = document.getElementById("playerScore");
+const aiScoreEl = document.getElementById("aiScore");
 
-  let playerSpeed = 0;
-  let aiSpeed = 3;
+let ballSpeedX = 3;
+let ballSpeedY = 3;
+let ballPosX = backboard.offsetWidth / 2;
+let ballPosY = backboard.offsetHeight / 2;
 
-  const squareHeight = backboard.offsetHeight;
-  const squareWidth = backboard.offsetWidth;
-  
-  const paddleWidth = player.offsetHeight;
-  const paddleHeight = player.offsetWidth;
-  const ballRadius = ball.offsetWidth / 2;
+let playerSpeed = 0;
+let aiSpeed = 3;
 
-  let playerY = 150;
-  let aiY = 150;
+const squareHeight = backboard.offsetHeight;
+const squareWidth = backboard.offsetWidth;
 
-  let playerScore = 0;
-  let aiScore = 0;
-  
-  // Escape Paddle Logic
-  function escapePaddle() {
-    while (
-      // Player paddle collision conditions
-      (ballPosX + ballRadius >= player.offsetLeft &&
-        ballPosY >= playerY &&
-        ballPosY <= playerY + paddleWidth) ||
-      // AI paddle collision conditions
-      (ballPosX - ballRadius <= ai.offsetLeft + paddleHeight &&
-        ballPosY >= aiY &&
-        ballPosY <= aiY + paddleWidth)
-    ) {
-      ballPosX += ballSpeedX;
-      ballPosY += ballSpeedY;
-    }
+const paddleWidth = player.offsetHeight;
+const paddleHeight = player.offsetWidth;
+const ballRadius = ball.offsetWidth / 2;
+
+let playerY = 150;
+let aiY = 150;
+
+let playerScore = 0;
+let aiScore = 0;
+
+function movePaddles() {
+  playerY += playerSpeed;
+  if (playerY < 0) playerY = 0;
+  if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
+  player.style.top = playerY + "px";
+
+  aiY += aiSpeed;
+  if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
+  ai.style.top = aiY + "px";
+}
+
+function moveBall() {
+  ballPosX += ballSpeedX;
+  ballPosY += ballSpeedY;
+
+  // Collision with top or bottom walls
+  if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
+    ballSpeedY *= -1;
   }
 
-  function movePaddles() {
-    playerY += playerSpeed;
-    if (playerY < 0) playerY = 0;
-    if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
-    player.style.top = playerY + "px";
+  // Collision with paddles
+  const playerCollision =
+    ballPosX - ballRadius <= player.offsetLeft + paddleHeight &&
+    ballPosX + ballRadius >= player.offsetLeft &&
+    ballPosY + ballRadius >= playerY &&
+    ballPosY - ballRadius <= playerY + player.offsetHeight;
 
-    aiY += aiSpeed;
-    if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
-    ai.style.top = aiY + "px";
+  const aiCollision =
+    ballPosX + ballRadius >= ai.offsetLeft &&
+    ballPosX - ballRadius <= ai.offsetLeft + ai.offsetWidth &&
+    ballPosY + ballRadius >= aiY &&
+    ballPosY - ballRadius <= aiY + ai.offsetHeight;
+
+  if (playerCollision) {
+    ballSpeedX = Math.abs(ballSpeedX); // Ensure ball moves right
+    ballPosX = player.offsetLeft + paddleHeight + ballRadius; // Adjust position
+  } else if (aiCollision) {
+    ballSpeedX = -Math.abs(ballSpeedX); // Ensure ball moves left
+    ballPosX = ai.offsetLeft - ballRadius; // Adjust position
   }
 
-  function moveBall() {
-    ballPosX += ballSpeedX;
-    ballPosY += ballSpeedY;
-
-    // Collision with top or bottom walls
-    if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
-      ballSpeedY *= -1;
-    }
-
-    // Collision with paddles
-    const playerCollision =
-      ballPosX + ball.offsetWidth >= player.offsetLeft &&
-      ballPosY >= playerY &&
-      ballPosY <= playerY + player.offsetHeight;
-
-    const aiCollision =
-      ballPosX <= ai.offsetLeft + ai.offsetWidth &&
-      ballPosY >= aiY &&
-      ballPosY <= aiY + ai.offsetHeight;
-
-    if (playerCollision || aiCollision) {
-      ballSpeedX *= -1;
-      escapePaddle();
-    }
-
-    // Ball out of bounds logic
-    if (ballPosX <= 0) {
-      playerScore++;
-      resetBall();
-      updateScore();
-    } else if (ballPosX >= squareWidth) {
-      aiScore++;
-      resetBall();
-      updateScore();
-    }
-
-    ball.style.left = ballPosX + "px";
-    ball.style.top = ballPosY + "px";
+  // Ball out of bounds logic
+  if (ballPosX - ballRadius <= 0) {
+    aiScore++;
+    resetBall();
+    updateScore();
+  } else if (ballPosX + ballRadius >= squareWidth) {
+    playerScore++;
+    resetBall();
+    updateScore();
   }
 
-  function resetBall() {
-    ballPosX = squareWidth / 2;
-    ballPosY = squareHeight / 2;
-    ballSpeedX *= -1;
+  ball.style.left = ballPosX + "px";
+  ball.style.top = ballPosY + "px";
+}
+
+function resetBall() {
+  ballPosX = squareWidth / 2;
+  ballPosY = squareHeight / 2;
+  ballSpeedX *= -1; // Reverse direction
+}
+
+function updateScore() {
+  playerScoreEl.textContent = playerScore;
+  aiScoreEl.textContent = aiScore;
+}
+
+// Function for handling inputs using the scroll wheel
+function handleScroll() {
+  let middleY = document.body.scrollHeight / 2;
+
+  if (window.scrollY > middleY + 1) {
+    playerSpeed = -8; // Scrolling down
+  } else if (window.scrollY < middleY - 1) {
+    playerSpeed = 8; // Scrolling up
+  } else {
+    playerSpeed = 0;
   }
+}
 
-  function updateScore() {
-    playerScoreEl.textContent = playerScore;
-    aiScoreEl.textContent = aiScore;
-  }
+function gameLoop() {
+  movePaddles();
+  moveBall();
+  requestAnimationFrame(gameLoop);
+}
 
+// Necessary event calls
+setTimeout(() => {
+  loadingDiv.style.display = "none";
+  gameLoop();
+}, 1000);
 
-  // Function for handling inputs using the scroll wheel
-  function handleScroll() {
-    let middleY = document.body.scrollHeight / 2;
-
-    if (window.scrollY > middleY + 1) {
-      //ball.style.backgroundColor = 'green'; // Scrolling down
-      playerSpeed = -8;
-    } else if (window.scrollY < middleY - 1) {
-      //ball.style.backgroundColor = 'blue'; // Scrolling up
-      playerSpeed = 8;
-    } else {
-      playerSpeed = 0;
-    }
-  }
-  
-  function gameLoop() {
-    movePaddles();
-    moveBall();
-    requestAnimationFrame(gameLoop);
-  }
-
-  // Necessary event calls
-  setTimeout(() => {
-    loadingDiv.style.display = 'none';
-    gameLoop();
-  }, 1000);
-  
-  window.addEventListener("scroll", infiniteScroll);
-  window.addEventListener("scroll", handleScroll);
+window.addEventListener("scroll", infiniteScroll);
+window.addEventListener("scroll", handleScroll);
 </script>
 
 </body>
