@@ -30,8 +30,6 @@
         padding: 10px;
         display: none;
     }
-
-    /* Relevant Styling starts here */
     
     #startup {
         position: fixed;
@@ -51,6 +49,8 @@
         height: 50px;
         transform: translate(40px, 30px);
     }
+
+    /* Relevant Styling starts here */
 
     #backboard {
         position: fixed;
@@ -123,18 +123,19 @@
     </div>
 
     <!-- Game Elements -->
+    
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
     <div id="ball" class="circle"></div>
     <div id="scoreboard">
       <span id="aiScore">0</span>—<span id="playerScore">0</span>
     </div>
+    
     <!------------------->
   
   </div>
 
 <script>
-  ////////////////////////////////////////////////////
   /* This code makes the full screen seemless for some reason and I have no idea how */
   
   const contentDiv = document.getElementById("content");
@@ -154,7 +155,6 @@
       }, 1000); // Simulate network delay
     });
   }
-
   function renderPosts(posts) {
     posts.forEach((post) => {
       const postDiv = document.createElement("div");
@@ -163,7 +163,6 @@
       contentDiv.appendChild(postDiv);
     });
   }
-
   async function infiniteScroll() {
     if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
       loaderDiv.style.display = "block"; // Show loader
@@ -175,7 +174,6 @@
       loaderDiv.style.display = "none"; // Hide loader
     }
   }
-
   function constantScroll() {
     window.scrollTo({
       top: document.body.scrollHeight / 2,
@@ -185,23 +183,22 @@
 
     requestAnimationFrame(constantScroll);
   }
-
   (async function init() {
     const initialPosts = await fetchPosts();
     renderPosts(initialPosts);
 
     constantScroll();
   })();
-
+  
   window.scrollTo({
-      top: document.body.scrollHeight / 2,
-      left: 29,
-      behavior: 'instant',
-    });
+    top: document.body.scrollHeight / 2,
+    left: 29,
+    behavior: 'instant',
+  });
 
   ///////////////////////////////////////////////////
+  /* <The actual code starts here> */
   
-  // <The actual code starts here>
   const backboard = document.getElementById("backboard");
   
   // variables for pong
