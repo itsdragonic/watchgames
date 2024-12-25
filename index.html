@@ -47,8 +47,9 @@
     }
 
     #startup img {
-        width: 100px;
-        height: 100px;
+        width: 70px;
+        height: 70px;
+        transform: translate(-30px, 20px);
     }
 
     #backboard {
@@ -315,7 +316,7 @@
   setTimeout(() => {
     loadingDiv.style.display = 'none';
     gameLoop();
-  }, 2000);
+  }, 1000);
   
   window.addEventListener("scroll", infiniteScroll);
   window.addEventListener("scroll", handleScroll);
