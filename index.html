@@ -61,7 +61,7 @@
       background-image: linear-gradient(red, yellow);
       top: 50%;
       left: 50%;
-      transform: translate(-50%, calc(-50% - 30px));
+      transform: translate(-50%, calc(-50% - 20px));
       transition: transform 0.2s ease-in-out;
     }
 
@@ -103,7 +103,7 @@
   <div id="loader" class="loader">Loading...</div>
 
   <div id="scoreboard">
-    <span id="aiScore">0</span> - <span id="playerScore">0</span>
+    <span id="aiScore">0</span>--<span id="playerScore">0</span>
   </div>
   
   <div id="floatingSquare" class="floating-square">
@@ -219,16 +219,34 @@
       ballSpeedX *= -1;
     }
 
-    // Reset ball if it goes out of bounds
-    if (ballPosX <= 0 || ballPosX >= squareWidth) {
-      ballPosX = squareWidth / 2;
-      ballPosY = squareHeight / 2;
-      ballSpeedX *= -1; // Reverse direction
+    // Ball out of bounds logic
+    if (ballPosX <= 0) {
+      playerScore++;
+      resetBall();
+      updateScore();
+    } else if (ballPosX >= squareWidth) {
+      aiScore++;
+      resetBall();
+      updateScore();
     }
 
     ball.style.left = ballPosX + "px";
     ball.style.top = ballPosY + "px";
   }
+
+  // Function to reset ball position
+  function resetBall() {
+    ballPosX = squareWidth / 2;
+    ballPosY = squareHeight / 2;
+    ballSpeedX *= -1; // Reverse ball direction
+  }
+
+  // Function to update the scoreboard
+  function updateScore() {
+    playerScoreEl.textContent = playerScore;
+    aiScoreEl.textContent = aiScore;
+  }
+
 
   // Scroll color change logic
   function handleScroll() {
