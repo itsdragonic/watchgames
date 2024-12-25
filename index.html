@@ -54,9 +54,9 @@
     }
 
 
-    .floating-square {
+    #backboard {
       position: fixed;
-      width: 335px;
+      width: 340px;
       height: 400px;
       background-image: linear-gradient(red, yellow);
       top: 50%;
@@ -106,7 +106,7 @@
     <span id="aiScore">0</span>--<span id="playerScore">0</span>
   </div>
   
-  <div id="floatingSquare" class="floating-square">
+  <div id="backboard">
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
     <div id="ball" class="circle"></div>
@@ -115,7 +115,7 @@
 <script>
   const contentDiv = document.getElementById("content");
   const loaderDiv = document.getElementById("loader");
-  const floatingSquare = document.getElementById("floatingSquare");
+  const backboard = document.getElementById("backboard");
 
   let postCount = 0;
 
@@ -130,14 +130,14 @@
 
   let ballSpeedX = 2;
   let ballSpeedY = 2;
-  let ballPosX = floatingSquare.offsetWidth / 2;
-  let ballPosY = floatingSquare.offsetHeight / 2;
+  let ballPosX = backboard.offsetWidth / 2;
+  let ballPosY = backboard.offsetHeight / 2;
 
   let playerSpeed = 0;
   let aiSpeed = 1;
 
-  const squareHeight = floatingSquare.offsetHeight;
-  const squareWidth = floatingSquare.offsetWidth;
+  const squareHeight = backboard.offsetHeight;
+  const squareWidth = backboard.offsetWidth;
 
   let playerY = 150;
   let aiY = 150;
