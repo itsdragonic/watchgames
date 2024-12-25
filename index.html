@@ -187,13 +187,13 @@
   const playerScoreEl = document.getElementById("playerScore");
   const aiScoreEl = document.getElementById("aiScore");
 
-  let ballSpeedX = 2;
-  let ballSpeedY = 2;
+  let ballSpeedX = 3;
+  let ballSpeedY = 3;
   let ballPosX = backboard.offsetWidth / 2;
   let ballPosY = backboard.offsetHeight / 2;
 
   let playerSpeed = 0;
-  let aiSpeed = 1;
+  let aiSpeed = 2;
 
   const squareHeight = backboard.offsetHeight;
   const squareWidth = backboard.offsetWidth;
@@ -276,10 +276,10 @@
 
     if (window.scrollY > middleY + 1) {
       ball.style.backgroundColor = 'green'; // Scrolling down
-      playerSpeed = -5;
+      playerSpeed = -7;
     } else if (window.scrollY < middleY - 1) {
       ball.style.backgroundColor = 'blue'; // Scrolling up
-      playerSpeed = 5;
+      playerSpeed = 7;
     } else {
       playerSpeed = 0;
     }
