@@ -19,10 +19,9 @@
 
     .post {
       background: #fff;
+      color: #eee;
       margin: 20px 0;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     }
 
     .loader {
@@ -55,14 +54,14 @@
 
 
     #backboard {
-      position: fixed;
-      width: 310px;
-      height: 400px;
-      background-image: linear-gradient(red, yellow);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, calc(-50% - 45px));
-      transition: transform 0.2s ease-in-out;
+        position: fixed;
+        width: 320px;
+        height: 400px;
+        background-image: linear-gradient(red, yellow);
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, calc(-50% - 45px));
+        transition: transform 0.2s ease-in-out;
     }
 
     .rectangle {
@@ -113,13 +112,69 @@
   </div>
 
 <script>
+  ////////////////////////////////////////////////////
+  /* This code makes the full screen work for some reason and I have no idea how */
+  
   const contentDiv = document.getElementById("content");
   const loaderDiv = document.getElementById("loader");
-  const backboard = document.getElementById("backboard");
-
   let postCount = 0;
 
-  var tops = 100;
+  function fetchPosts() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const posts = [];
+        for (let i = 0; i < 5; i++) {
+          postCount++;
+          posts.push(`Post #${postCount}`);
+        }
+        resolve(posts);
+      }, 1000); // Simulate network delay
+    });
+  }
+
+  function renderPosts(posts) {
+    posts.forEach((post) => {
+      const postDiv = document.createElement("div");
+      postDiv.className = "post";
+      postDiv.textContent = post;
+      contentDiv.appendChild(postDiv);
+    });
+  }
+
+  async function infiniteScroll() {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loaderDiv.style.display = "block"; // Show loader
+
+      // Fetch and render new posts
+      const newPosts = await fetchPosts();
+      renderPosts(newPosts);
+
+      loaderDiv.style.display = "none"; // Hide loader
+    }
+  }
+
+  function constantScroll() {
+    window.scrollTo({
+      top: document.body.scrollHeight / 2,
+      left: 29,
+      behavior: 'instant',
+    });
+
+    requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
+  }
+
+  (async function init() {
+    const initialPosts = await fetchPosts();
+    renderPosts(initialPosts);
+
+    constantScroll();
+  })();
+
+  ///////////////////////////////////////////////////
+  
+  // The actual code starts here
+  
+  const backboard = document.getElementById("backboard");
   
   // variables for pong
   const player = document.getElementById("player");
@@ -144,45 +199,8 @@
 
   let playerScore = 0;
   let aiScore = 0;
-
-  // Function to fetch data (simulated backend API call)
-  function fetchPosts() {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const posts = [];
-        for (let i = 0; i < 5; i++) {
-          postCount++;
-          posts.push(`Post #${postCount}`);
-        }
-        resolve(posts);
-      }, 1000); // Simulate network delay
-    });
-  }
-
-  // Function to render posts
-  function renderPosts(posts) {
-    posts.forEach((post) => {
-      const postDiv = document.createElement("div");
-      postDiv.className = "post";
-      postDiv.textContent = post;
-      contentDiv.appendChild(postDiv);
-    });
-  }
-
-  // Infinite scroll logic
-  async function infiniteScroll() {
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
-      loaderDiv.style.display = "block"; // Show loader
-
-      // Fetch and render new posts
-      const newPosts = await fetchPosts();
-      renderPosts(newPosts);
-
-      loaderDiv.style.display = "none"; // Hide loader
-    }
-  }
   
-    // Function to move paddles
+  // Function to move paddles
   function movePaddles() {
     playerY += playerSpeed;
     if (playerY < 0) playerY = 0;
@@ -250,7 +268,7 @@
 
   // Scroll color change logic
   function handleScroll() {
-    const middleY = document.body.scrollHeight / 2;
+    let middleY = document.body.scrollHeight / 2;
 
     if (window.scrollY > middleY + 1) {
       ball.style.backgroundColor = 'green'; // Scrolling down
@@ -269,27 +287,7 @@
     requestAnimationFrame(gameLoop);
   }
   
-  setInterval(gameLoop(),20);
-
-  // Constantly running scroll command
-  function constantScroll() {
-    window.scrollTo({
-      top: document.body.scrollHeight / 2,
-      left: 29,
-      behavior: 'instant',
-    });
-
-    requestAnimationFrame(constantScroll); // Keeps the scroll running continuously
-  }
-
-  // Initial content load
-  (async function init() {
-    const initialPosts = await fetchPosts();
-    renderPosts(initialPosts);
-
-    // Start constant scrolling
-    constantScroll();
-  })();
+  setInterval(gameLoop(), 20);
 
   // Event listeners
   window.addEventListener("scroll", infiniteScroll);
