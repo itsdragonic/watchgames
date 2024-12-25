@@ -30,7 +30,14 @@
         padding: 10px;
         display: none;
     }
+
+    /* Relevant Styling starts here */
     
+    #startup {
+      width: 320px;
+      height: 400px;
+      background: #000;
+    }
 
     #backboard {
         position: fixed;
@@ -99,6 +106,9 @@
 
   <!-- Game elements go inside the backboard div -->
   <div id="backboard">
+    <div id="startup">
+      <img id="loading" src="images/loading.gif" alt="Loading..." width="40" height="40"/>
+    </div>
     
     <div id="player" class="rectangle"></div>
     <div id="ai" class="rectangle"></div>
@@ -177,7 +187,6 @@
   ///////////////////////////////////////////////////
   
   // <The actual code starts here>
-  
   const backboard = document.getElementById("backboard");
   
   // variables for pong
@@ -204,7 +213,7 @@
   let playerScore = 0;
   let aiScore = 0;
   
-  // Function to move paddles
+
   function movePaddles() {
     playerY += playerSpeed;
     if (playerY < 0) playerY = 0;
@@ -216,7 +225,6 @@
     ai.style.top = aiY + "px";
   }
 
-  // Function to move the ball
   function moveBall() {
     ballPosX += ballSpeedX;
     ballPosY += ballSpeedY;
@@ -256,21 +264,19 @@
     ball.style.top = ballPosY + "px";
   }
 
-  // Function to reset ball position
   function resetBall() {
     ballPosX = squareWidth / 2;
     ballPosY = squareHeight / 2;
     ballSpeedX *= -1;
   }
 
-  // Function to update the scoreboard
   function updateScore() {
     playerScoreEl.textContent = playerScore;
     aiScoreEl.textContent = aiScore;
   }
 
 
-  // Scroll color change logic
+  // Function for handling inputs using the scroll wheel
   function handleScroll() {
     let middleY = document.body.scrollHeight / 2;
 
@@ -293,6 +299,7 @@
   
   setInterval(gameLoop(), 20);
 
+  
   // Event listeners
   window.addEventListener("scroll", infiniteScroll);
   window.addEventListener("scroll", handleScroll);
