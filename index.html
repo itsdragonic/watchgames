@@ -63,52 +63,34 @@
         transition: transform 0.2s ease-in-out;
     }
 
-    .rectangle {
+    .app-grid {
         position: absolute;
-        width: 10px;
-        height: 50px;
-        background: #fff;
-        border-radius: 20px;
-        transform: translate(0, 0);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 20px;
+        width: 100%;
+        height: 100%;
+        top: 20px;
+        left: 20px;
     }
 
-    #player {
-        top: 100px;
-        left: calc(90%);
-    }
-
-    #ai {
-        top: 100px;
-        left: calc(5%);
-    }
-
-    .circle {
-        position: absolute;
-        width: 15px;
-        height: 15px;
-        background-color: red;
+    .app-item {
+        width: 125px;
+        height: 125px;
+        background-color: #007aff;
         border-radius: 50%;
-        top: 150px;
-        left: 45%;
-    }
-    
-    #scoreboard {
-        position: fixed;
-        width: 300px;
-        height: 40px;
-        top: 50%;
-        left: 51%;
-        transform: translate(-50%, -50%);
         display: flex;
         justify-content: center;
         align-items: center;
-        font-family: 'Roboto', sans-serif;
-        font-size: 60px;
-        color: #fff;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+        transition: transform 0.3s ease, opacity 0.3s ease;
     }
-    
-    #scoreboard span {
-        text-align: center;
+
+    .app-item:hover {
+        background-color: #005bbb;
     }
 
   </style>
@@ -124,11 +106,16 @@
 
     <!-- Game Elements -->
     
-    <div id="player" class="rectangle"></div>
-    <div id="ai" class="rectangle"></div>
-    <div id="ball" class="circle"></div>
-    <div id="scoreboard">
-      <span id="aiScore">0</span>—<span id="playerScore">0</span>
+    <div class="app-grid" id="appGrid">
+        <!-- App Items -->
+        <div class="app-item" data-index="0"><span>App 1</span></div>
+        <div class="app-item" data-index="1"><span>App 2</span></div>
+        <div class="app-item" data-index="2"><span>App 3</span></div>
+        <div class="app-item" data-index="3"><span>App 4</span></div>
+        <div class="app-item" data-index="4"><span>App 5</span></div>
+        <div class="app-item" data-index="5"><span>App 6</span></div>
+        <div class="app-item" data-index="6"><span>App 7</span></div>
+        <div class="app-item" data-index="7"><span>App 8</span></div>
     </div>
     
     <!------------------->
@@ -198,146 +185,78 @@
 
   ///////////////////////////////////////////////////
   /* <The actual code starts here> */
-  
-  const backboard = document.getElementById("backboard");
-  
-  // variables for pong
-  const player = document.getElementById("player");
-  const ai = document.getElementById("ai");
-  const ball = document.getElementById("ball");
-  const playerScoreEl = document.getElementById("playerScore");
-  const aiScoreEl = document.getElementById("aiScore");
+    
+  const appContainer = document.getElementById('backboard');
+  const appGrid = document.getElementById('appGrid');
+  const appItems = document.querySelectorAll('.app-item');
 
-  let ballSpeedX = 4;
-  let ballSpeedY = 5;
-  let ballPosX = backboard.offsetWidth / 2;
-  let ballPosY = backboard.offsetHeight / 2;
+  let scrollOffset = 0;
 
-  let playerSpeed = 0;
-  let aiSpeed = 3;
+  // Optimal Y positions for each app
+  const appOptimalYPositions = [
+      { x: 0, y: 0 }, // App 1
+      { x: 0, y: 1 }, // App 2
+      { x: 0, y: 2 }, // App 3
+      { x: 0, y: 3 }, // App 4
+      { x: 1, y: 0 }, // App 5
+      { x: 1, y: 1 }, // App 6
+      { x: 1, y: 2 }, // App 7
+      { x: 1, y: 3 }  // App 8
+  ];
 
-  const squareHeight = backboard.offsetHeight;
-  const squareWidth = backboard.offsetWidth;
-  
-  const paddleWidth = player.offsetHeight;
-  const paddleHeight = player.offsetWidth;
-  const ballRadius = ball.offsetWidth / 2;
+  // Set initial grid positions based on optimal Y coordinates
+  appItems.forEach((item, index) => {
+      const { x, y } = appOptimalYPositions[index];
+      item.style.gridColumnStart = x + 1;
+      item.style.gridRowStart = y + 1;
+  });
 
-  let playerY = 150;
-  let aiY = 150;
+  // Handle wheel scroll input
+  appContainer.addEventListener('wheel', (e) => {
+      if (e.deltaY !== 0) {
+          scrollOffset += e.deltaY;
 
-  let playerScore = 0;
-  let aiScore = 0;
-  
-  // Escape Paddle Logic
-  function escapePaddle() {
-    while (
-      // Player paddle collision conditions
-      (ballPosX + ballRadius >= player.offsetLeft &&
-        ballPosY >= playerY &&
-        ballPosY <= playerY + paddleWidth) ||
-      // AI paddle collision conditions
-      (ballPosX - ballRadius <= ai.offsetLeft + paddleHeight &&
-        ballPosY >= aiY &&
-        ballPosY <= aiY + paddleWidth)
-    ) {
-      ballPosX += ballSpeedX;
-      ballPosY += ballSpeedY;
-    }
-  }
+          // Update the grid's vertical position based on scroll
+          appGrid.style.transform = `translateY(${scrollOffset * 0.1}px)`;
 
-  function movePaddles() {
-    playerY += playerSpeed;
-    if (playerY < 0) playerY = 0;
-    if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
-    player.style.top = playerY + "px";
+          // Adjust the size of the apps based on their Y position relative to the scroll
+          appItems.forEach((item, index) => {
+              const { x, y } = appOptimalYPositions[index];
 
-    aiY += aiSpeed;
-    if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
-    ai.style.top = aiY + "px";
-  }
+              // Calculate the Y position of the app within the container
+              const appPositionY = y * 200 + scrollOffset * 0.2; // Adjust to optimal Y positions
 
-  function moveBall() {
-    ballPosX += ballSpeedX;
-    ballPosY += ballSpeedY;
+              // Calculate the distance of the app from the center of the container
+              const distance = Math.abs(appPositionY - 200); // 200 is the "center" of the container vertically
 
-    // Collision with top or bottom walls
-    if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
-      ballSpeedY *= -1;
-    }
+              // Proportional scaling factor based on the distance from the center
+              const scale = Math.max(0.5, 1 - distance / 400); // Shrink apps when moving out of view
 
-    // Collision with paddles
-    const playerCollision =
-      ballPosX + ball.offsetWidth >= player.offsetLeft &&
-      ballPosY >= playerY &&
-      ballPosY <= playerY + player.offsetHeight;
+              // Apply scaling to the app
+              item.style.transform = `scale(${scale})`;
+          });
+      }
 
-    const aiCollision =
-      ballPosX <= ai.offsetLeft + ai.offsetWidth &&
-      ballPosY >= aiY &&
-      ballPosY <= aiY + ai.offsetHeight;
+      // Prevent default vertical scrolling behavior
+      e.preventDefault();
+  });
 
-    if (playerCollision || aiCollision) {
-      ballSpeedX *= -1;
-      escapePaddle()
-    }
-
-    // Ball out of bounds logic
-    if (ballPosX <= 0) {
-      playerScore++;
-      resetBall();
-      updateScore();
-    } else if (ballPosX >= squareWidth) {
-      aiScore++;
-      resetBall();
-      updateScore();
-    }
-
-    ball.style.left = ballPosX + "px";
-    ball.style.top = ballPosY + "px";
-  }
-
-  function resetBall() {
-    ballPosX = squareWidth / 2;
-    ballPosY = squareHeight / 2;
-    ballSpeedX *= -1;
-  }
-
-  function updateScore() {
-    playerScoreEl.textContent = playerScore;
-    aiScoreEl.textContent = aiScore;
-  }
-
-
-  // Function for handling inputs using the scroll wheel
-  function handleScroll() {
-    let middleY = document.body.scrollHeight / 2;
-
-    if (window.scrollY > middleY + 1) {
-      //ball.style.backgroundColor = 'green'; // Scrolling down
-      playerSpeed = -8;
-    } else if (window.scrollY < middleY - 1) {
-      //ball.style.backgroundColor = 'blue'; // Scrolling up
-      playerSpeed = 8;
-    } else {
-      playerSpeed = 0;
-    }
-  }
-  
-  function gameLoop() {
-    movePaddles();
-    moveBall();
-    requestAnimationFrame(gameLoop);
-  }
-
-  // Necessary event calls
-  setTimeout(() => {
-    loadingDiv.style.display = 'none';
-    gameLoop();
-  }, 1000);
-  
-  window.addEventListener("scroll", infiniteScroll);
-  window.addEventListener("scroll", handleScroll);
+  // Handle app item click events (redirect to different websites)
+  appItems.forEach((app, index) => {
+      app.addEventListener('click', () => {
+          const urls = [
+              'https://www.example.com/1',
+              'https://www.example.com/2',
+              'https://www.example.com/3',
+              'https://www.example.com/4',
+              'https://www.example.com/5',
+              'https://www.example.com/6',
+              'https://www.example.com/7',
+              'https://www.example.com/8'
+          ];
+          window.location.href = urls[index];
+      });
+  });
 </script>
 
 </body>
