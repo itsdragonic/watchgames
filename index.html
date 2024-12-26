@@ -257,6 +257,14 @@
           window.location.href = urls[index];
       });
   });
+
+  // Necessary event calls
+  setTimeout(() => {
+    loadingDiv.style.display = 'none';
+  }, 1000);
+  
+  window.addEventListener("scroll", infiniteScroll);
+  window.addEventListener("scroll", handleScroll);
 </script>
 
 </body>
