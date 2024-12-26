@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <title>Pong</title>
+  <title>Watch Games</title>
   <style>
     body {
         font-family: Arial, sans-serif;
@@ -108,7 +108,7 @@
     
     <div class="app-grid" id="appGrid">
         <!-- App Items -->
-        <div class="app-item" data-index="0"><span>App 1</span></div>
+        <div class="app-item" data-index="0"><span>Pong</span></div>
         <div class="app-item" data-index="1"><span>App 2</span></div>
         <div class="app-item" data-index="2"><span>App 3</span></div>
         <div class="app-item" data-index="3"><span>App 4</span></div>
@@ -218,10 +218,10 @@
 
     if (window.scrollY > middleY + 1) {
       //ball.style.backgroundColor = 'green'; // Scrolling down
-      movement = -8;
+      movement = -20;
     } else if (window.scrollY < middleY - 1) {
       //ball.style.backgroundColor = 'blue'; // Scrolling up
-      movement = 8;
+      movement = 20;
     }
 
     scrollOffset += movement;
@@ -251,7 +251,7 @@
   appItems.forEach((app, index) => {
       app.addEventListener('click', () => {
           const urls = [
-              'https://www.example.com/1',
+              'pong.html',
               'https://www.example.com/2',
               'https://www.example.com/3',
               'https://www.example.com/4',
