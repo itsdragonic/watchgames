@@ -212,35 +212,41 @@
   });
 
   // Handle wheel scroll input
-  appContainer.addEventListener('wheel', (e) => {
-      if (e.deltaY !== 0) {
-          scrollOffset += e.deltaY;
+  function handleScroll() {
+    let middleY = document.body.scrollHeight / 2;
+    let movement = 0;
 
-          // Update the grid's vertical position based on scroll
-          appGrid.style.transform = `translateY(${scrollOffset * 0.1}px)`;
+    if (window.scrollY > middleY + 1) {
+      //ball.style.backgroundColor = 'green'; // Scrolling down
+      movement = -8;
+    } else if (window.scrollY < middleY - 1) {
+      //ball.style.backgroundColor = 'blue'; // Scrolling up
+      movement = 8;
+    }
 
-          // Adjust the size of the apps based on their Y position relative to the scroll
-          appItems.forEach((item, index) => {
-              const { x, y } = appOptimalYPositions[index];
+    scrollOffset += movement;
 
-              // Calculate the Y position of the app within the container
-              const appPositionY = y * 200 + scrollOffset * 0.2; // Adjust to optimal Y positions
+    // Update the grid's vertical position based on scroll
+    appGrid.style.transform = `translateY(${scrollOffset * 0.1}px)`;
 
-              // Calculate the distance of the app from the center of the container
-              const distance = Math.abs(appPositionY - 200); // 200 is the "center" of the container vertically
+    // Adjust the size of the apps based on their Y position relative to the scroll
+    appItems.forEach((item, index) => {
+        const { x, y } = appOptimalYPositions[index];
 
-              // Proportional scaling factor based on the distance from the center
-              const scale = Math.max(0.5, 1 - distance / 400); // Shrink apps when moving out of view
+        // Calculate the Y position of the app within the container
+        const appPositionY = y * 200 + scrollOffset * 0.2; // Adjust to optimal Y positions
 
-              // Apply scaling to the app
-              item.style.transform = `scale(${scale})`;
-          });
-      }
+        // Calculate the distance of the app from the center of the container
+        const distance = Math.abs(appPositionY - 200); // 200 is the "center" of the container vertically
 
-      // Prevent default vertical scrolling behavior
-      e.preventDefault();
-  });
+        // Proportional scaling factor based on the distance from the center
+        const scale = Math.max(0.5, 1 - distance / 400); // Shrink apps when moving out of view
 
+        // Apply scaling to the app
+        item.style.transform = `scale(${scale})`;
+    });
+  }
+  
   // Handle app item click events (redirect to different websites)
   appItems.forEach((app, index) => {
       app.addEventListener('click', () => {
