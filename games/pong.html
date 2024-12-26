@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <title>Pong</title>
+  <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #000;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .post {
+        background: #111;
+        color: #222;
+        margin: 20px 0;
+        padding: 20px;
+    }
+
+    .loader {
+        text-align: center;
+        font-size: 16px;
+        padding: 10px;
+        display: none;
+    }
+    
+    #startup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    #startup img {
+        width: 50px;
+        height: 50px;
+        transform: translate(30px, 30px);
+    }
+
+    /* Relevant Styling starts here */
+
+    #backboard {
+        position: fixed;
+        width: 320px;
+        height: 400px;
+        background: #000;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, calc(-50% - 45px));
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .rectangle {
+        position: absolute;
+        width: 10px;
+        height: 50px;
+        background: #fff;
+        border-radius: 20px;
+        transform: translate(0, 0);
+    }
+
+    #player {
+        top: 100px;
+        left: calc(90%);
+    }
+
+    #ai {
+        top: 100px;
+        left: calc(5%);
+    }
+
+    .circle {
+        position: absolute;
+        width: 15px;
+        height: 15px;
+        background-color: red;
+        border-radius: 50%;
+        top: 150px;
+        left: 45%;
+    }
+    
+    #scoreboard {
+        position: fixed;
+        width: 300px;
+        height: 40px;
+        top: 50%;
+        left: 51%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Roboto', sans-serif;
+        font-size: 60px;
+        color: #fff;
+    }
+    
+    #scoreboard span {
+        text-align: center;
+    }
+
+  </style>
+</head>
+<body>
+  <div id="content" class="content"></div>
+  <div id="loader" class="loader">Loading...</div>
+
+  <div id="backboard">
+    <div id="startup">
+      <img id="loading" src="images/loading.gif" alt="Loading..." />
+    </div>
+
+    <!-- Game Elements -->
+    
+    <div id="player" class="rectangle"></div>
+    <div id="ai" class="rectangle"></div>
+    <div id="ball" class="circle"></div>
+    <div id="scoreboard">
+      <span id="aiScore">0</span>—<span id="playerScore">0</span>
+    </div>
+    
+    <!------------------->
+  
+  </div>
+
+<script>
+  /* This code makes the full screen seemless for some reason and I have no idea how */
+  
+  const contentDiv = document.getElementById("content");
+  const loaderDiv = document.getElementById("loader");
+  const loadingDiv = document.getElementById("startup");
+  let postCount = 0;
+
+  function fetchPosts() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const posts = [];
+        for (let i = 0; i < 5; i++) {
+          postCount++;
+          posts.push(`Post #${postCount}`);
+        }
+        resolve(posts);
+      }, 1000); // Simulate network delay
+    });
+  }
+  function renderPosts(posts) {
+    posts.forEach((post) => {
+      const postDiv = document.createElement("div");
+      postDiv.className = "post";
+      postDiv.textContent = post;
+      contentDiv.appendChild(postDiv);
+    });
+  }
+  async function infiniteScroll() {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loaderDiv.style.display = "block"; // Show loader
+
+      // Fetch and render new posts
+      const newPosts = await fetchPosts();
+      renderPosts(newPosts);
+
+      loaderDiv.style.display = "none"; // Hide loader
+    }
+  }
+  function constantScroll() {
+    window.scrollTo({
+      top: document.body.scrollHeight / 2,
+      left: 29,
+      behavior: 'instant',
+    });
+
+    requestAnimationFrame(constantScroll);
+  }
+  (async function init() {
+    const initialPosts = await fetchPosts();
+    renderPosts(initialPosts);
+
+    constantScroll();
+  })();
+  
+  window.scrollTo({
+    top: document.body.scrollHeight / 2,
+    left: 29,
+    behavior: 'instant',
+  });
+
+  ///////////////////////////////////////////////////
+  /* <The actual code starts here> */
+  
+  const backboard = document.getElementById("backboard");
+  
+  // variables for pong
+  const player = document.getElementById("player");
+  const ai = document.getElementById("ai");
+  const ball = document.getElementById("ball");
+  const playerScoreEl = document.getElementById("playerScore");
+  const aiScoreEl = document.getElementById("aiScore");
+
+  let ballSpeedX = 4;
+  let ballSpeedY = 5;
+  let ballPosX = backboard.offsetWidth / 2;
+  let ballPosY = backboard.offsetHeight / 2;
+
+  let playerSpeed = 0;
+  let aiSpeed = 3;
+
+  const squareHeight = backboard.offsetHeight;
+  const squareWidth = backboard.offsetWidth;
+  
+  const paddleWidth = player.offsetHeight;
+  const paddleHeight = player.offsetWidth;
+  const ballRadius = ball.offsetWidth / 2;
+
+  let playerY = 150;
+  let aiY = 150;
+
+  let playerScore = 0;
+  let aiScore = 0;
+  
+  // Escape Paddle Logic
+  function escapePaddle() {
+    while (
+      // Player paddle collision conditions
+      (ballPosX + ballRadius >= player.offsetLeft &&
+        ballPosY >= playerY &&
+        ballPosY <= playerY + paddleWidth) ||
+      // AI paddle collision conditions
+      (ballPosX - ballRadius <= ai.offsetLeft + paddleHeight &&
+        ballPosY >= aiY &&
+        ballPosY <= aiY + paddleWidth)
+    ) {
+      ballPosX += ballSpeedX;
+      ballPosY += ballSpeedY;
+    }
+  }
+
+  function movePaddles() {
+    playerY += playerSpeed;
+    if (playerY < 0) playerY = 0;
+    if (playerY > squareHeight - player.offsetHeight) playerY = squareHeight - player.offsetHeight;
+    player.style.top = playerY + "px";
+
+    aiY += aiSpeed;
+    if (aiY < 0 || aiY > squareHeight - ai.offsetHeight) aiSpeed *= -1;
+    ai.style.top = aiY + "px";
+  }
+
+  function moveBall() {
+    ballPosX += ballSpeedX;
+    ballPosY += ballSpeedY;
+
+    // Collision with top or bottom walls
+    if (ballPosY <= 0 || ballPosY >= squareHeight - ball.offsetHeight) {
+      ballSpeedY *= -1;
+    }
+
+    // Collision with paddles
+    const playerCollision =
+      ballPosX + ball.offsetWidth >= player.offsetLeft &&
+      ballPosY >= playerY &&
+      ballPosY <= playerY + player.offsetHeight;
+
+    const aiCollision =
+      ballPosX <= ai.offsetLeft + ai.offsetWidth &&
+      ballPosY >= aiY &&
+      ballPosY <= aiY + ai.offsetHeight;
+
+    if (playerCollision || aiCollision) {
+      ballSpeedX *= -1;
+      escapePaddle()
+    }
+
+    // Ball out of bounds logic
+    if (ballPosX <= 0) {
+      playerScore++;
+      resetBall();
+      updateScore();
+    } else if (ballPosX >= squareWidth) {
+      aiScore++;
+      resetBall();
+      updateScore();
+    }
+
+    ball.style.left = ballPosX + "px";
+    ball.style.top = ballPosY + "px";
+  }
+
+  function resetBall() {
+    ballPosX = squareWidth / 2;
+    ballPosY = squareHeight / 2;
+    ballSpeedX *= -1;
+  }
+
+  function updateScore() {
+    playerScoreEl.textContent = playerScore;
+    aiScoreEl.textContent = aiScore;
+  }
+
+
+  // Function for handling inputs using the scroll wheel
+  function handleScroll() {
+    let middleY = document.body.scrollHeight / 2;
+
+    if (window.scrollY > middleY + 1) {
+      //ball.style.backgroundColor = 'green'; // Scrolling down
+      playerSpeed = -8;
+    } else if (window.scrollY < middleY - 1) {
+      //ball.style.backgroundColor = 'blue'; // Scrolling up
+      playerSpeed = 8;
+    } else {
+      playerSpeed = 0;
+    }
+  }
+  
+  function gameLoop() {
+    movePaddles();
+    moveBall();
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Necessary event calls
+  setTimeout(() => {
+    loadingDiv.style.display = 'none';
+    gameLoop();
+  }, 1000);
+  
+  window.addEventListener("scroll", infiniteScroll);
+  window.addEventListener("scroll", handleScroll);
+</script>
+
+</body>
+</html>
