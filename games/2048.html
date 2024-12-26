@@ -1861,27 +1861,14 @@ Tile.prototype.serialize = function () {
   };
 };
   
-let lastScrollTime = 0;
-let lastScrollDirection = '';
-  
 // Function for handling inputs using the scroll wheel
 function handleScroll() {
-    const currentTime = new Date().getTime();
-    const middleY = document.body.scrollHeight / 2;
-    const coolDownPeriod = 400; // 0.4 seconds
-    const swipeThreshold = 200; // Time threshold to consider a quick swipe
-  
-    if (currentTime - lastScrollTime < coolDownPeriod) {
-      return; // Exit if the cool-down period hasn't passed 
-    }
-  
+    let middleY = document.body.scrollHeight / 2;
     if (window.scrollY > middleY + 1) {
-        simulateKeyPress(40); // Simulate up arrow key (key code 38)
+      simulateKeyPress(38); // Simulate up arrow key (key code 38)
     } else if (window.scrollY < middleY - 1) {
-        simulateKeyPress(38); // Simulate down arrow key (key code 40)
+      simulateKeyPress(40); // Simulate down arrow key (key code 40)
     }
-  
-    lastScrollTime = currentTime;
 }
 
 function simulateKeyPress(keyCode) {
