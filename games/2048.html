@@ -1860,6 +1860,30 @@ Tile.prototype.serialize = function () {
     value: this.value
   };
 };
+  
+// Function for handling inputs using the scroll wheel
+function handleScroll() {
+    let middleY = document.body.scrollHeight / 2;
+
+    if (window.scrollY > middleY + 1) {
+        simulateKeyPress(40); // Simulate down arrow key (key code 40)
+    } else if (window.scrollY < middleY - 1) {
+        simulateKeyPress(38); // Simulate up arrow key (key code 38)
+    }
+}
+
+function simulateKeyPress(keyCode) {
+    let event = new KeyboardEvent('keydown', {
+        key: keyCode === 38 ? 'ArrowUp' : 'ArrowDown',
+        code: keyCode === 38 ? 'ArrowUp' : 'ArrowDown',
+        keyCode: keyCode,
+        which: keyCode,
+        bubbles: true,
+        cancelable: true
+    });
+
+    document.dispatchEvent(event);
+}
 
 // Necessary event calls
 setTimeout(() => {
@@ -1867,7 +1891,7 @@ setTimeout(() => {
 }, 1000);
 
 window.addEventListener("scroll", infiniteScroll);
-//window.addEventListener("scroll", handleScroll);
+window.addEventListener("scroll", handleScroll);
 </script>
 </body>
 </html>
