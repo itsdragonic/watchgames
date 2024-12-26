@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>2048</title>
 
+  <!-- Original Creator: https://codepen.io/TheThe-Code/pen/VwYEbrR -->
   <link href="style/main.css" rel="stylesheet" type="text/css">
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="meta/apple-touch-icon.png">
@@ -28,6 +29,56 @@ html, body {
 
 body {
   margin: 80px 0; }
+
+.content {
+  padding: 20px;
+}
+
+.post {
+  background: #111;
+  color: #222;
+  margin: 20px 0;
+  padding: 20px;
+}
+
+.loader {
+  text-align: center;
+  font-size: 16px;
+  padding: 10px;
+  display: none;
+}
+
+#startup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#startup img {
+  width: 50px;
+  height: 50px;
+  transform: translate(40px, 30px);
+}
+
+/* Relevant Styling starts here */
+
+#backboard {
+  position: fixed;
+  width: 320px;
+  height: 400px;
+  background: #000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, calc(-50% - 45px));
+  transition: transform 0.2s ease-in-out;
+}
 
 .heading:after {
   content: "";
@@ -779,7 +830,15 @@ hr {
 </style>
 </head>
 <body>
-  <div class="container">
+  <div id="content" class="content"></div>
+  <div id="loader" class="loader">Loading...</div>
+	
+  <div id="backboard" class="container">
+    <div id="startup">
+      <img id="loading" src="images/loading.gif" alt="Loading..." />
+    </div>
+
+    <!-- Game Elements -->
     <div class="heading">
       <h1 class="title">2048</h1>
       <div class="scores-container">
@@ -845,6 +904,69 @@ hr {
   <script src="js/game_manager.js"></script>
   <script src="js/application.js"></script>
 <script>
+/* This code makes the full screen seemless for some reason and I have no idea how */
+  
+  const contentDiv = document.getElementById("content");
+  const loaderDiv = document.getElementById("loader");
+  const loadingDiv = document.getElementById("startup");
+  let postCount = 0;
+
+  function fetchPosts() {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const posts = [];
+        for (let i = 0; i < 5; i++) {
+          postCount++;
+          posts.push(`Post #${postCount}`);
+        }
+        resolve(posts);
+      }, 1000); // Simulate network delay
+    });
+  }
+  function renderPosts(posts) {
+    posts.forEach((post) => {
+      const postDiv = document.createElement("div");
+      postDiv.className = "post";
+      postDiv.textContent = post;
+      contentDiv.appendChild(postDiv);
+    });
+  }
+  async function infiniteScroll() {
+    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 100) {
+      loaderDiv.style.display = "block"; // Show loader
+
+      // Fetch and render new posts
+      const newPosts = await fetchPosts();
+      renderPosts(newPosts);
+
+      loaderDiv.style.display = "none"; // Hide loader
+    }
+  }
+  function constantScroll() {
+    window.scrollTo({
+      top: document.body.scrollHeight / 2,
+      left: 29,
+      behavior: 'instant',
+    });
+
+    requestAnimationFrame(constantScroll);
+  }
+  (async function init() {
+    const initialPosts = await fetchPosts();
+    renderPosts(initialPosts);
+
+    constantScroll();
+  })();
+  
+  window.scrollTo({
+    top: document.body.scrollHeight / 2,
+    left: 29,
+    behavior: 'instant',
+  });
+
+  ///////////////////////////////////////////////////
+  /* <The actual code starts here> */
+	
 
 // Wait till the browser is ready to render the game (avoids glitches)
 window.requestAnimationFrame(function () {
@@ -1729,7 +1851,14 @@ Tile.prototype.serialize = function () {
     value: this.value
   };
 };
-    
+
+// Necessary event calls
+setTimeout(() => {
+  loadingDiv.style.display = 'none';
+}, 1000);
+
+window.addEventListener("scroll", infiniteScroll);
+window.addEventListener("scroll", handleScroll);
 </script>
 </body>
 </html>
