@@ -456,10 +456,10 @@ animate();
 
     if (window.scrollY > middleY + 1) {
       // Scrolling down
-      rotationDelta -= 0.07;
+      rotationDelta += 0.075;
     } else if (window.scrollY < middleY - 1) {
       // Scrolling up
-      rotationDelta += 0.07;
+      rotationDelta -= 0.075;
     }
   }
 
