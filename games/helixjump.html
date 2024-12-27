@@ -186,9 +186,10 @@ const camera = new THREE.PerspectiveCamera(25, 353 / 430, 0.1, 1000);
 camera.position.set(0, 10, 4);
 camera.lookAt(0, 5, 0);
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setSize(353, 430);
 renderer.setClearColor(0xffffff, 1); // Set background to white
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 backboard.appendChild(renderer.domElement);
 
 // Add smooth and silky lighting
@@ -252,7 +253,7 @@ function createSpikyTexture() {
 }
 
 let sectors = [];
-let sectorCount = 15;
+let sectorCount = 5;
 const helixHeight = 37;
 
 for (let i = 0; i < sectorCount; i++) {
@@ -270,7 +271,7 @@ centerCylinder.position.y = 0;
 scene.add(centerCylinder);
 
 // Ball
-const ballGeometry = new THREE.SphereGeometry(0.1, 32, 32); // Slightly smaller ball
+const ballGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Slightly smaller ball
 const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff2200 });
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
 ball.position.set(0, helixHeight + 1, 0.8); // Start on the edge of the platforms
@@ -433,7 +434,7 @@ function resetGame() {
   });
   sectors = [];
   
-  sectorCount = 15;
+  sectorCount = 5;
   for (let i = 0; i < sectorCount; i++) {
     const levelSectors = createSectors(i * 2.4);
     sectors.push(...levelSectors);
