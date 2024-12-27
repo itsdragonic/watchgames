@@ -182,7 +182,7 @@ if (localStorage.getItem('highscore')) {
 
 // Scene setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(25, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(25, 353 / 430, 0.1, 1000);
 camera.position.set(0, 10, 4);
 camera.lookAt(0, 5, 0);
 
@@ -455,10 +455,10 @@ animate();
 
     if (window.scrollY > middleY + 1) {
       // Scrolling down
-      rotationDelta -= 10;
+      rotationDelta -= 1;
     } else if (window.scrollY < middleY - 1) {
       // Scrolling up
-      rotationDelta += 10;
+      rotationDelta += 1;
     }
   }
 
