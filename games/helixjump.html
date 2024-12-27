@@ -245,7 +245,7 @@ function createSectors(y) {
 
 // Function to create a spiky texture
 function createSpikyTexture() {
-  const texture = new THREE.TextureLoader().load('spiky.jpg'); // Load texture file
+  const texture = new THREE.TextureLoader().load('images/spiky.jpg'); // Load texture file
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(1, 1);
   return texture;
