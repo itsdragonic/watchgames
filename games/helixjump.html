@@ -448,6 +448,19 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+  // Function for handling inputs using the scroll wheel
+  function handleScroll() {
+    let middleY = document.body.scrollHeight / 2;
+
+    if (window.scrollY > middleY + 1) {
+      // Scrolling down
+      rotationDelta -= 20;
+    } else if (window.scrollY < middleY - 1) {
+      // Scrolling up
+      rotationDelta += 20;
+    }
+  }
+
   // Necessary event calls
   setTimeout(() => {
     loadingDiv.style.display = 'none';
