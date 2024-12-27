@@ -74,7 +74,7 @@
       color: black;
       border-radius: 8px;
       display: flex;
-      justify-content: left;
+      justify-content: center;
       align-items: center;
       font-size: 50px;
       transform: translate(50%, -0%)
@@ -245,7 +245,7 @@ function createSectors(y) {
 
 // Function to create a spiky texture
 function createSpikyTexture() {
-  const texture = new THREE.TextureLoader().load('spiky-texture.jpg'); // Load texture file
+  const texture = new THREE.TextureLoader().load('spiky.jpg'); // Load texture file
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(1, 1);
   return texture;
@@ -455,10 +455,10 @@ animate();
 
     if (window.scrollY > middleY + 1) {
       // Scrolling down
-      rotationDelta -= 0.1;
+      rotationDelta -= 0.5;
     } else if (window.scrollY < middleY - 1) {
       // Scrolling up
-      rotationDelta += 0.1;
+      rotationDelta += 0.5;
     }
   }
 
