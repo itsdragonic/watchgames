@@ -80,6 +80,20 @@
       transform: translate(30%, -0%)
     }
 
+    #gameover {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      font-size: 48px;
+      text-align: center;
+      padding-top: 20%;
+      display: none;
+    }
+
   </style>
 </head>
 <body>
@@ -94,6 +108,11 @@
     <!-- Game Elements -->
     
     <div id="scoreboard">0</div>
+    <div id="gameover">
+      <strong>Game Over</strong>
+      <div id="points">Points: ${points}</div>
+      <div id="highscore">High Score: ${highscore}</div>  
+    </div>
     
     <!------------------->
 
@@ -173,7 +192,9 @@ let level = 0;
 let points = 0;
 let highscore = 0;
 let gameOver = false;
-let gameOverScreen = null; // Reference to the Game Over screen
+let gameOverScreen = document.getElementById('gameover');
+
+const computerDebugging = false;
 
 // Load high score from localStorage
 if (localStorage.getItem('highscore')) {
@@ -199,7 +220,10 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
 directionalLight.position.set(5, 10, 7);
 scene.add(directionalLight);
 
-// Create helix sectors at each level
+
+let currentLevelId = 0; // Initialize the unique level ID counter
+
+// Modified function to create helix sectors at each level with unique IDs
 function createSectors(y) {
   const sectors = [];
   const sectorCount = Math.floor(Math.random() * 5) + 2;
@@ -220,12 +244,11 @@ function createSectors(y) {
       bevelEnabled: false,
     });
 
-    // 25% chance for an orange sector
     const isOrangeSector = Math.random() < 0.25;
 
     const sectorMaterial = new THREE.MeshStandardMaterial({
-      color: isOrangeSector ? 0xff6600 : 0x0077ff, // 10% chance to make orange
-      roughness: 0.8, // Give it a rough texture feel
+      color: isOrangeSector ? 0xff6600 : 0x0077ff,
+      roughness: 0.8,
     });
 
     // Optionally add a spiky texture to the orange sectors
@@ -235,13 +258,34 @@ function createSectors(y) {
     }
 
     const sector = new THREE.Mesh(sectorGeometry, sectorMaterial);
-    sector.rotation.x = -Math.PI / 2; // Ensure sectors are horizontal
+    sector.rotation.x = -Math.PI / 2;
     sector.position.y = y;
+
+    // Assign level ID and store it in the sector's metadata
+    sector.userData.levelId = currentLevelId;
+
     scene.add(sector);
-    sectors.push({ sector, isOrangeSector }); // Store the sector and whether it's orange
+    sectors.push({ sector, isOrangeSector });
   }
 
+  currentLevelId++; // Increment the level ID for the next level
   return sectors;
+}
+
+// Function to delete all sectors from a specific level
+function deleteSectorsFromLevel(levelId) {
+  // Filter out the sectors to keep
+  const remainingSectors = [];
+  sectors.forEach(({ sector }) => {
+    if (sector.userData.levelId === levelId) {
+      scene.remove(sector); // Properly remove the sector from the scene
+    } else {
+      remainingSectors.push({ sector });
+    }
+  });
+
+  // Update the sectors array
+  sectors = remainingSectors;
 }
 
 // Function to create a spiky texture
@@ -289,9 +333,12 @@ const downVector = new THREE.Vector3(0, -1, 0);
 
 // Scroll wheel to rotate platforms
 let rotationDelta = 0;
-/*window.addEventListener("wheel", (event) => {
-  rotationDelta += event.deltaY * 0.001; // Adjust sensitivity as needed
-});*/
+
+if (computerDebugging) {
+  window.addEventListener("wheel", (event) => {
+    rotationDelta += event.deltaY * 0.001; // Adjust sensitivity as needed
+  });
+}
 
 let bounceVelocity = 0;
 
@@ -344,6 +391,7 @@ function animate() {
   // Handle "Game Over" logic
   if (touchedOrange) {
     gameOver = true;
+    bounceVelocity = 10;
     updateHighscore();
     showGameOver();
     return;
@@ -385,52 +433,36 @@ function animate() {
 
 // Show Game Over screen
 function showGameOver() {
-  gameOverScreen = document.createElement('div');
-  gameOverScreen.style.position = 'absolute';
-  gameOverScreen.style.top = '0';
-  gameOverScreen.style.left = '0';
-  gameOverScreen.style.width = '100%';
-  gameOverScreen.style.height = '100%';
-  gameOverScreen.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
-  gameOverScreen.style.color = 'white';
-  gameOverScreen.style.fontSize = '48px';
-  gameOverScreen.style.textAlign = 'center';
-  gameOverScreen.style.paddingTop = '20%';
-  gameOverScreen.innerHTML = `
-    <div>Game Over</div>
-    <div>Points: ${points}</div>
-    <div>High Score: ${highscore}</div>
-  `;
-  document.body.appendChild(gameOverScreen);
+  gameOverScreen.style.display = 'inline';
+  document.getElementById('points').innerHTML = `Points: ${points}`;
+  document.getElementById('highscore').innerHTML = `High Score: ${highscore}`;
 
   setTimeout(() => {
+    gameOverScreen.style.display = 'none';
     resetGame();
-  }, 1000); // Reset the game after 1 second
+  }, 1500);
 }
 
 // Update high score in localStorage
 function updateHighscore() {
   if (points > highscore) {
     highscore = points;
-    localStorage.setItem('highscore', highscore); // Save new high score to localStorage
+    localStorage.setItem('highscore', highscore);
   }
 }
 
 // Reset the game
 function resetGame() {
-  // Remove the game over screen
-  if (gameOverScreen) {
-    gameOverScreen.remove();
-    gameOverScreen = null; // Clear the reference
-  }
 
   ball.position.set(0, helixHeight + 1, 0.8);
   ballVelocity = { x: 0, y: 0, z: 0 };
+  bounceVelocity = 0;
   level = 0;
   points = 0;
   gameOver = false;
-  sectors.forEach((sector) => {
-    scene.remove(sector);
+
+  sectors.forEach(({ sector }) => {
+    scene.remove(sector); // Properly remove the sector from the scene
   });
   sectors = [];
   
