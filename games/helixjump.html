@@ -146,12 +146,14 @@
       left: 29,
       behavior: 'instant',
     });
+
+    requestAnimationFrame(constantScroll);
   }
   (async function init() {
     const initialPosts = await fetchPosts();
     renderPosts(initialPosts);
 
-    setInterval(constantScroll, 100);
+    constantScroll();
   })();
   
   window.scrollTo({
