@@ -71,13 +71,13 @@
       position: absolute;
       width: 200px;
       height: 75px;
-      color: black;
+      color: white;
       border-radius: 8px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 50px;
-      transform: translate(50%, -0%)
+      transform: translate(40%, -0%)
     }
 
   </style>
@@ -456,10 +456,10 @@ animate();
 
     if (window.scrollY > middleY + 1) {
       // Scrolling down
-      rotationDelta -= 0.15;
+      rotationDelta -= 0.07;
     } else if (window.scrollY < middleY - 1) {
       // Scrolling up
-      rotationDelta += 0.15;
+      rotationDelta += 0.07;
     }
   }
 
