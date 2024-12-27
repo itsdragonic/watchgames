@@ -182,12 +182,12 @@ if (localStorage.getItem('highscore')) {
 
 // Scene setup
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(25, 353 / 430, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(25, actualWidth / actualHeight, 0.1, 1000);
 camera.position.set(0, 10, 4);
 camera.lookAt(0, 5, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: false });
-renderer.setSize(353, 430);
+renderer.setSize(actualWidth, actualHeight);
 renderer.setClearColor(0xffffff, 1); // Set background to white
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 backboard.appendChild(renderer.domElement);
