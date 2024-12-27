@@ -253,7 +253,7 @@ function createSpikyTexture() {
 }
 
 let sectors = [];
-let sectorCount = 5;
+let sectorCount = 15;
 const helixHeight = 37;
 
 for (let i = 0; i < sectorCount; i++) {
@@ -434,7 +434,7 @@ function resetGame() {
   });
   sectors = [];
   
-  sectorCount = 5;
+  sectorCount = 15;
   for (let i = 0; i < sectorCount; i++) {
     const levelSectors = createSectors(i * 2.4);
     sectors.push(...levelSectors);
