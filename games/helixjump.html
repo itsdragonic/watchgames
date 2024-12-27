@@ -187,7 +187,7 @@ camera.position.set(0, 10, 4);
 camera.lookAt(0, 5, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(actualWidth, actualHeight);
+renderer.setSize(353, 430);
 renderer.setClearColor(0xffffff, 1); // Set background to white
 backboard.appendChild(renderer.domElement);
 
@@ -455,10 +455,10 @@ animate();
 
     if (window.scrollY > middleY + 1) {
       // Scrolling down
-      rotationDelta -= 20;
+      rotationDelta -= 10;
     } else if (window.scrollY < middleY - 1) {
       // Scrolling up
-      rotationDelta += 20;
+      rotationDelta += 10;
     }
   }
 
