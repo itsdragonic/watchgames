@@ -194,7 +194,7 @@ let highscore = 0;
 let gameOver = false;
 let gameOverScreen = document.getElementById('gameover');
 
-const computerDebugging = false;
+const computerDebugging = true;
 
 // Load high score from localStorage
 if (localStorage.getItem('highscore')) {
@@ -286,6 +286,22 @@ function deleteSectorsFromLevel(levelId) {
 
   // Update the sectors array
   sectors = remainingSectors;
+}
+
+function changeSectorColorToGreen(sectors, targetLevelId) {
+  // Iterate through the sectors
+  sectors.forEach(({ sector }) => {
+    if (sector.userData.levelId === targetLevelId) {
+      // Remove sector from the scene before making changes
+      scene.remove(sector);
+
+      // Change color to green
+      sector.material.color.set(0x00ff00);
+
+      // Re-add the updated sector to the scene
+      scene.add(sector);
+    }
+  });
 }
 
 // Function to create a spiky texture
@@ -391,7 +407,7 @@ function animate() {
   // Handle "Game Over" logic
   if (touchedOrange) {
     gameOver = true;
-    bounceVelocity = 10;
+    bounceVelocity = .2;
     updateHighscore();
     showGameOver();
     return;
