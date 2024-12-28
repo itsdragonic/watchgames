@@ -88,6 +88,7 @@ body {
 h1.title {
   position: absolute;
   font-size: 60px !important;
+  left: 40px;
   font-weight: bold;
   margin: 0;
   clear: both; }
@@ -219,9 +220,6 @@ hr {
   cursor: default;
   -webkit-touch-callout: none;
   -ms-touch-callout: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   -ms-touch-action: none;
   touch-action: none;
   background: #bbada0;
@@ -596,7 +594,6 @@ hr {
   margin-bottom: 0; }
 
 .restart-button {
-  display: inline-block;
   background: #8f7a66;
   border-radius: 3px;
   padding: 0 20px;
@@ -656,9 +653,6 @@ hr {
     cursor: default;
     -webkit-touch-callout: none;
     -ms-touch-callout: none;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
     -ms-touch-action: none;
     touch-action: none;
     background: #000;
@@ -730,6 +724,8 @@ hr {
     width: 57.5px;
     height: 57.5px;
     margin-right: 10px;
+    transform: translate(30px); /* translate to center */
+
     float: left;
     border-radius: 3px;
     background: #2a2a2c; }
@@ -738,6 +734,8 @@ hr {
 
   .tile-container {
     position: absolute;
+    transform: translate(30px);
+
     z-index: 2; }
 
   .tile, .tile .tile-inner {
@@ -1865,7 +1863,7 @@ Tile.prototype.serialize = function () {
 function handleScroll() {
     let middleY = document.body.scrollHeight / 2;
     if (window.scrollY > middleY + 1) {
-      simulateKeyPress(38); // Simulate up arrow key (key code 38)
+      simulateKeyPress(39); // Simulate left arrow key (key code 38)
     } else if (window.scrollY < middleY - 1) {
       simulateKeyPress(40); // Simulate down arrow key (key code 40)
     }
