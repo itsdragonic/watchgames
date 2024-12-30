@@ -185,7 +185,7 @@
   function constantScroll() {
     window.scrollTo({
       top: document.body.scrollHeight / 2,
-      left: 29,
+      left: 28,
       behavior: 'instant',
     });
 
@@ -320,17 +320,18 @@
   // Function for handling inputs using the scroll wheel
   function handleScroll() {
     let middleY = document.body.scrollHeight / 2;
+    let velocity = window.scrollY - middleY;
 
-    if (window.scrollY > middleY + 1) {
+    if (velocity > 0) {
       ball.style.backgroundColor = 'green'; // Scrolling down
-      playerSpeed = -8;
-    } else if (window.scrollY < middleY - 1) {
+      playerSpeed = - Math.abs(2 * velocity);
+    } else if (velocity < 0) {
       ball.style.backgroundColor = 'blue'; // Scrolling up
-      playerSpeed = 8;
+      playerSpeed = Math.abs(2 * velocity);
     } else {
       playerSpeed = 0;
     }
-    document.getElementById("debug").innerHTML = window.scrollY;
+    document.getElementById("debug").innerHTML = velocity;
   }
   
   function gameLoop() {
