@@ -194,7 +194,7 @@ let highscore = 0;
 let gameOver = false;
 let gameOverScreen = document.getElementById('gameover');
 
-const computerDebugging = false;
+const computerDebugging = true;
 
 // Load high score from localStorage
 if (localStorage.getItem('highscore')) {
@@ -213,7 +213,7 @@ renderer.setClearColor(0xffffff, 1); // Set background to white
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 backboard.appendChild(renderer.domElement);
 
-// Add smooth and silky lighting
+// Lighting
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -221,9 +221,9 @@ directionalLight.position.set(5, 10, 7);
 scene.add(directionalLight);
 
 
-var currentLevelId = 6; // Initialize the unique level ID counter
+var currentLevelId = 6;
 
-// Modified function to create helix sectors at each level with unique IDs
+// Create platforms out of sectors
 function createSectors(y) {
   const sectors = [];
   const sectorCount = Math.floor(Math.random() * 5) + 2;
@@ -251,17 +251,17 @@ function createSectors(y) {
       roughness: 0.8,
     });
 
-    // Optionally add a spiky texture to the orange sectors
+    // Texturing
     if (isOrangeSector) {
-      sectorMaterial.roughness = 1; // Make it rougher for texture feel
-      sectorMaterial.normalMap = createSpikyTexture(); // Apply a spiky texture
+      sectorMaterial.roughness = 1;
+      sectorMaterial.normalMap = createSpikyTexture();
     }
 
     const sector = new THREE.Mesh(sectorGeometry, sectorMaterial);
     sector.rotation.x = -Math.PI / 2;
     sector.position.y = y;
 
-    // Assign level ID and store it in the sector's metadata
+    // Assign level ID
     sector.name = currentLevelId;
 
     scene.add(sector);
@@ -279,9 +279,8 @@ function createSectors(y) {
   return sectors;
 }
 
-// Function to create a spiky texture
 function createSpikyTexture() {
-  const texture = new THREE.TextureLoader().load('images/spiky.jpg'); // Load texture file
+  const texture = new THREE.TextureLoader().load('images/spiky.jpg');
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
   texture.repeat.set(1, 1);
   return texture;
@@ -311,24 +310,24 @@ function deleteObject(id) {
 }
 
 // Central rod
-const centerGeometry = new THREE.CylinderGeometry(0.45, 0.4, 1000, 32); // Thicker pillar
+const centerGeometry = new THREE.CylinderGeometry(0.45, 0.4, 1000, 32);
 const centerMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
 const centerCylinder = new THREE.Mesh(centerGeometry, centerMaterial);
 centerCylinder.position.y = 0;
 scene.add(centerCylinder);
 
 // Ball
-const ballGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Slightly smaller ball
+const ballGeometry = new THREE.SphereGeometry(0.1, 16, 16);
 const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff2200 });
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-ball.position.set(0, helixHeight, 0.8); // Start on the edge of the platforms
+ball.position.set(0, helixHeight, 0.8);
 ball.castShadow = true;
 scene.add(ball);
 
 // Physics variables
 let ballVelocity = { x: 0, y: 0, z: 0 };
-const gravity = -0.05;
-const bounce = 1;
+let gravity = -0.05;
+let bounce = 1;
 
 // Raycaster for collision detection
 const raycaster = new THREE.Raycaster();
@@ -344,7 +343,6 @@ if (computerDebugging) {
 }
 
 let oldestLevel = 0;
-let lowestVal = 20;
 let bounceVelocity = 0;
 
 // Animation logic
@@ -410,7 +408,7 @@ function animate() {
   }
 
   sectors.forEach((sectorObj) => {
-    sectorObj.sector.rotation.z += rotationDelta; // Ensure flat horizontal orientation
+    sectorObj.sector.rotation.z += rotationDelta;
     sectorObj.sector.rotation.x = -Math.PI / 2;
     sectorObj.sector.rotation.y = 0;
   });
@@ -421,10 +419,11 @@ function animate() {
     level++;
   }
   if (level > previousLevel) {
-    // Create and delete platforms
+    // Create platforms
     const levelSectors = createSectors(sectorCount * 2.4);
     sectors.push(...levelSectors);
 
+    // Delete platforms
     if (level > 1) {
       deleteObject(oldestLevel);
       oldestLevel ++;
@@ -437,9 +436,9 @@ function animate() {
     sectorCount--;
   }
 
-  // Make the camera follow the ball's y position with an offset
-  const cameraOffsetY = 3.8;
-  camera.position.y = ball.position.y + cameraOffsetY;
+  // Update camera and light position
+  directionalLight.position.y = ball.position.y;
+  camera.position.y = ball.position.y + 3.9;
   
   renderer.render(scene, camera);
 }
@@ -476,8 +475,9 @@ function resetGame() {
   points = 0;
   gameOver = false;
 
+  // Delete all sectors
   sectors.forEach(({ sector }) => {
-    scene.remove(sector); // Properly remove the sector from the scene
+    scene.remove(sector);
   });
   sectors = [];
   
@@ -492,33 +492,34 @@ function resetGame() {
 
 animate();
 
-/*window.addEventListener('resize', () => {
+/* For resizing window (not needed)
+window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });*/
 
-  // Function for handling inputs using the scroll wheel
-  function handleScroll() {
-    let middleY = document.body.scrollHeight / 2;
-    let velocity = window.scrollY - middleY;
+// Function for handling inputs using the crown
+function handleScroll() {
+  let middleY = document.body.scrollHeight / 2;
+  let velocity = window.scrollY - middleY;
 
-    if (velocity > 0) {
-      // Scrolling up
-      rotationDelta += 0.005 * velocity;
-    } else if (velocity < 0) {
-      // Scrolling down
-      rotationDelta += 0.005 * velocity;
-    }
+  if (velocity > 0) {
+    // Scrolling up
+    rotationDelta += 0.005 * velocity;
+  } else if (velocity < 0) {
+    // Scrolling down
+    rotationDelta += 0.005 * velocity;
   }
+}
 
-  // Necessary event calls
-  setTimeout(() => {
-    loadingDiv.style.display = 'none';
-  }, 1000);
-  
-  window.addEventListener("scroll", infiniteScroll);
-  window.addEventListener("scroll", handleScroll);
+// Necessary event calls
+setTimeout(() => {
+  loadingDiv.style.display = 'none';
+}, 1000);
+
+window.addEventListener("scroll", infiniteScroll);
+window.addEventListener("scroll", handleScroll);
 </script>
 
 </body>
