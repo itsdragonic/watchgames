@@ -324,11 +324,11 @@
 
     if (velocity > 200) {
       ball.style.backgroundColor = 'purple';
-    } else if (velocity > 0 && velocity < 30) {
-      ball.style.backgroundColor = 'green'; // Scrolling down
+    } else if (velocity > 0) {
+      ball.style.backgroundColor = 'green'; // Scrolling up
       playerSpeed = - Math.abs(1.5 * velocity);
     } else if (velocity < 0) {
-      ball.style.backgroundColor = 'blue'; // Scrolling up
+      ball.style.backgroundColor = 'blue'; // Scrolling down
       playerSpeed = Math.abs(1.5 * velocity);
     } else {
       playerSpeed = 0;
