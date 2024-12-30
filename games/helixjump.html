@@ -10,7 +10,7 @@
         font-family: 'Roboto', Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background-color: #ff1111;
+        background-color: #000;
     }
 
     .content {
@@ -77,7 +77,7 @@
       justify-content: center;
       align-items: center;
       font-size: 50px;
-      transform: translate(30%, -0%)
+      transform: translate(30%, 20%)
     }
 
     #gameover {
@@ -202,7 +202,7 @@ if (localStorage.getItem('highscore')) {
 }
 
 // Scene setup
-const scene = new THREE.Scene();
+const scene = new THREE.Scene(); // FOV (25)
 const camera = new THREE.PerspectiveCamera(25, actualWidth / actualHeight, 0.1, 1000);
 camera.position.set(0, 10, 4);
 camera.lookAt(0, 5, 0);
@@ -221,7 +221,7 @@ directionalLight.position.set(5, 10, 7);
 scene.add(directionalLight);
 
 
-let currentLevelId = 0; // Initialize the unique level ID counter
+var currentLevelId = 6; // Initialize the unique level ID counter
 
 // Modified function to create helix sectors at each level with unique IDs
 function createSectors(y) {
@@ -262,46 +262,21 @@ function createSectors(y) {
     sector.position.y = y;
 
     // Assign level ID and store it in the sector's metadata
-    sector.userData.levelId = currentLevelId;
+    sector.name = currentLevelId;
 
     scene.add(sector);
     sectors.push({ sector, isOrangeSector });
   }
 
-  currentLevelId++; // Increment the level ID for the next level
+  if (currentLevelId <= 6) {
+    currentLevelId --;
+  } else {
+    currentLevelId ++;
+  }
+  if (currentLevelId == -1) {
+    currentLevelId = 7;
+  }
   return sectors;
-}
-
-// Function to delete all sectors from a specific level
-function deleteSectorsFromLevel(levelId) {
-  // Filter out the sectors to keep
-  const remainingSectors = [];
-  sectors.forEach(({ sector }) => {
-    if (sector.userData.levelId === levelId) {
-      scene.remove(sector); // Properly remove the sector from the scene
-    } else {
-      remainingSectors.push({ sector });
-    }
-  });
-
-  // Update the sectors array
-  sectors = remainingSectors;
-}
-
-function changeSectorColorToGreen(sectors, targetLevelId) {
-  // Iterate through the sectors
-  sectors.forEach(({ sector }) => {
-    if (sector.userData.levelId === targetLevelId) {
-      // Remove sector from the scene before making changes
-      scene.remove(sector);
-
-      // Change color to green
-      sector.material.color.set(0x00ff00);
-
-      // Re-add the updated sector to the scene
-      scene.add(sector);
-    }
-  });
 }
 
 // Function to create a spiky texture
@@ -313,15 +288,27 @@ function createSpikyTexture() {
 }
 
 let sectors = [];
-let sectorCount = 15;
-const helixHeight = 37;
+let sectorCount = 7;
+const helixHeight = 19.5;
 
 for (let i = 0; i < sectorCount; i++) {
   const levelSectors = createSectors(i * 2.4);
   sectors.push(...levelSectors);
 }
-
 sectorCount = -1;
+
+
+function deleteObject(id) {
+  let remainingSectors = [];
+  sectors.forEach(({ sector, isOrangeSector }) => {
+    if (sector.name == id) {
+      scene.remove(sector);
+    } else {
+      remainingSectors.push({ sector, isOrangeSector });
+    }
+  });
+  sectors = remainingSectors;
+}
 
 // Central rod
 const centerGeometry = new THREE.CylinderGeometry(0.45, 0.4, 1000, 32); // Thicker pillar
@@ -334,7 +321,7 @@ scene.add(centerCylinder);
 const ballGeometry = new THREE.SphereGeometry(0.1, 16, 16); // Slightly smaller ball
 const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff2200 });
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-ball.position.set(0, helixHeight + 1, 0.8); // Start on the edge of the platforms
+ball.position.set(0, helixHeight, 0.8); // Start on the edge of the platforms
 ball.castShadow = true;
 scene.add(ball);
 
@@ -356,6 +343,8 @@ if (computerDebugging) {
   });
 }
 
+let oldestLevel = 0;
+let lowestVal = 20;
 let bounceVelocity = 0;
 
 // Animation logic
@@ -428,20 +417,28 @@ function animate() {
 
   rotationDelta *= 0.9;
 
-  if (35 - level > ball.position.y) {
+  if (Math.round((ball.position.y + 2.4 * level) * 100)/100 == 14.95) {
     level++;
   }
   if (level > previousLevel) {
-    previousLevel = level;
+    // Create and delete platforms
     const levelSectors = createSectors(sectorCount * 2.4);
     sectors.push(...levelSectors);
-    points = level * 10;
+
+    if (level > 1) {
+      deleteObject(oldestLevel);
+      oldestLevel ++;
+    } 
+
+    // Update points
+    previousLevel = level;
+    points = level * 20;
     document.getElementById("scoreboard").innerHTML = points;
     sectorCount--;
   }
 
   // Make the camera follow the ball's y position with an offset
-  const cameraOffsetY = 3.8;  // Adjust this value for a better view
+  const cameraOffsetY = 3.8;
   camera.position.y = ball.position.y + cameraOffsetY;
   
   renderer.render(scene, camera);
@@ -452,6 +449,7 @@ function showGameOver() {
   gameOverScreen.style.display = 'inline';
   document.getElementById('points').innerHTML = `Points: ${points}`;
   document.getElementById('highscore').innerHTML = `High Score: ${highscore}`;
+  document.getElementById("scoreboard").innerHTML = 0;
 
   setTimeout(() => {
     gameOverScreen.style.display = 'none';
@@ -470,9 +468,10 @@ function updateHighscore() {
 // Reset the game
 function resetGame() {
 
-  ball.position.set(0, helixHeight + 1, 0.8);
+  ball.position.set(0, helixHeight, 0.8);
   ballVelocity = { x: 0, y: 0, z: 0 };
   bounceVelocity = 0;
+  previousLevel = 0;
   level = 0;
   points = 0;
   gameOver = false;
@@ -482,7 +481,8 @@ function resetGame() {
   });
   sectors = [];
   
-  sectorCount = 15;
+  sectorCount = 7;
+  currentLevelId = 6;
   for (let i = 0; i < sectorCount; i++) {
     const levelSectors = createSectors(i * 2.4);
     sectors.push(...levelSectors);
