@@ -194,7 +194,7 @@ let highscore = 0;
 let gameOver = false;
 let gameOverScreen = document.getElementById('gameover');
 
-const computerDebugging = true;
+const computerDebugging = false;
 
 // Load high score from localStorage
 if (localStorage.getItem('highscore')) {
@@ -501,13 +501,14 @@ animate();
   // Function for handling inputs using the scroll wheel
   function handleScroll() {
     let middleY = document.body.scrollHeight / 2;
+    let velocity = window.scrollY - middleY;
 
-    if (window.scrollY > middleY + 1) {
-      // Scrolling down
-      rotationDelta += 0.075;
-    } else if (window.scrollY < middleY - 1) {
+    if (velocity > 0) {
       // Scrolling up
-      rotationDelta -= 0.075;
+      rotationDelta += 0.05 * velocity;
+    } else if (velocity < 0) {
+      // Scrolling down
+      rotationDelta -= 0.05 * velocity;
     }
   }
 
