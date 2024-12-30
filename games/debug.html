@@ -322,7 +322,9 @@
     let middleY = document.body.scrollHeight / 2;
     let velocity = window.scrollY - middleY;
 
-    if (velocity > 0) {
+    if (velocity > 200) {
+      ball.style.backgroundColor = 'purple';
+    } else if (velocity > 0) {
       ball.style.backgroundColor = 'green'; // Scrolling down
       playerSpeed = - Math.abs(2 * velocity);
     } else if (velocity < 0) {
