@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Canvas Solitaire (330x450)</title>
+<style>
+  html,body{height:100%;margin:0;background:#0b1620;display:flex;align-items:center;justify-content:center}
+  canvas{image-rendering:pixelated;border:6px solid #223;box-shadow:0 6px 18px rgba(0,0,0,.6)}
+  .hint{position:fixed;left:50%;transform:translateX(-50%);bottom:10px;color:#cfe; font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial;opacity:.9}
+</style>
+</head>
+<body>
+<canvas id="c" width="330" height="450"></canvas>
+<div class="hint">Controls: Mouse wheel to cycle selectable targets. Stop for 1s to auto-move (if unique). Click to confirm moves or click stock to deal.</div>
+<script>
+(() => {
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Layout constants (computed to make cards as large as possible)
+  const padding = 8;
+  const cols = 7;
+  const gap = 6;
+  const cardW = Math.floor((W - padding*2 - gap*(cols-1)) / cols);
+  const cardH = Math.round(cardW * 1.45); // readable aspect
+  const topArea = 72; // area for stock/waste/foundations
+  const tableY = topArea + 12;
+  const pileGapX = gap;
+  const pileX = i => padding + i * (cardW + pileGapX);
+  const stockX = padding, stockY = 8;
+  const wasteX = padding + cardW + 8, wasteY = 8;
+  const foundationX = padding + (cardW + 8)*3; // approximate center-right
+  const foundationSpacing = cardW + 8;
+
+  // Card utilities
+  const SUITS = ['♣','♦','♥','♠'];
+  const COLORS = {'♣':'black','♠':'black','♦':'red','♥':'red'};
+  const RANKS = [null,'A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+
+  function newDeck(){
+    const d = [];
+    for(let s=0;s<4;s++) for(let r=1;r<=13;r++) d.push({suit:SUITS[s],rank:r});
+    // shuffle
+    for(let i=d.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1)); [d[i],d[j]]=[d[j],d[i]];
+    }
+    return d;
+  }
+
+  // Game state
+  const piles = Array.from({length:7}, ()=>[]); // tableau, each card: {suit,rank,faceUp}
+  const foundations = [[],[],[],[]]; // by suit index order SUITS
+  let stock = []; // face-down pile
+  let waste = []; // face-up stack (array of cards)
+
+  // Selection / input handling
+  let selectable = []; // list of selectable objects {type:'card'|'stock'|'waste'|'foundation'|'pile', pileIndex, cardIndex, x,y,w,h}
+  let selIndex = 0;
+  let lastScrollAt = 0;
+  let scrollTimer = null;
+  let glowing = false; // when a selected card had >1 options
+  let glowingCard = null; // reference to selected card's object
+
+  function dealNew(){
+    const d = newDeck();
+    for(let i=0;i<7;i++){
+      piles[i]=[];
+      for(let j=0;j<=i;j++){
+        piles[i].push(Object.assign({}, d.pop(), {faceUp: j===i}));
+      }
+    }
+    stock = d.map(c=>Object.assign({},c));
+    waste = [];
+    for(let i=0;i<4;i++) foundations[i]=[];
+    rebuildSelectable();
+  }
+
+  function topOfFoundationIndex(card){
+    for(let i=0;i<4;i++) if(foundations[i].length>0 && foundations[i][foundations[i].length-1].suit===card.suit) return i;
+    return -1;
+  }
+
+  function suitIndex(suit){ return SUITS.indexOf(suit); }
+
+  function canPlaceOnTableau(card, pileIdx){
+    const pile = piles[pileIdx];
+    if(pile.length===0) return card.rank===13; // King to empty
+    const top = pile[pile.length-1];
+    if(!top.faceUp) return false;
+    // alternate color, rank one less
+    return ((COLORS[top.suit]!==COLORS[card.suit]) && top.rank === card.rank+1);
+  }
+
+  function canPlaceOnFoundation(card, foundationIdx){
+    const pile = foundations[foundationIdx];
+    if(pile.length===0) return card.rank===1; // Ace
+    const top = pile[pile.length-1];
+    return (top.suit===card.suit && card.rank===top.rank+1);
+  }
+
+  function possibleDestinationsForCardAt(pileIdx, cardIdx){
+    // card at piles[pileIdx][cardIdx] must be faceUp
+    const card = piles[pileIdx][cardIdx];
+    const dests = [];
+    // moving the card plus any face-up sequence beneath it
+    // foundation only accepts single cards
+    for(let f=0;f<4;f++){
+      if(canPlaceOnFoundation(card,f)) dests.push({type:'foundation',foundationIndex:f});
+    }
+    for(let p=0;p<7;p++){
+      if(p===pileIdx) continue;
+      if(canPlaceOnTableau(card,p)) dests.push({type:'pile',pileIndex:p});
+    }
+    return dests;
+  }
+
+  function possibleDestinationsForWaste(){
+    if(waste.length===0) return [];
+    const card = waste[waste.length-1];
+    const dests = [];
+    for(let f=0;f<4;f++) if(canPlaceOnFoundation(card,f)) dests.push({type:'foundation',foundationIndex:f});
+    for(let p=0;p<7;p++) if(canPlaceOnTableau(card,p)) dests.push({type:'pile',pileIndex:p});
+    return dests;
+  }
+
+  function moveFromPile(pileIdx, cardIdx, dest){
+    const seq = piles[pileIdx].slice(cardIdx);
+    piles[pileIdx] = piles[pileIdx].slice(0,cardIdx);
+    if(dest.type==='pile'){
+      piles[dest.pileIndex] = piles[dest.pileIndex].concat(seq);
+    } else if(dest.type==='foundation'){
+      // only single card allowed; seq must be single
+      foundations[dest.foundationIndex].push(seq[0]);
+    }
+    // flip top of origin if needed
+    const origin = piles[pileIdx];
+    if(origin.length>0 && !origin[origin.length-1].faceUp) origin[origin.length-1].faceUp = true;
+    rebuildSelectable();
+  }
+
+  function moveWasteTo(dest){
+    const card = waste.pop();
+    if(dest.type==='foundation') foundations[dest.foundationIndex].push(card);
+    else if(dest.type==='pile') piles[dest.pileIndex].push(card);
+    rebuildSelectable();
+  }
+
+  function dealFromStock(){
+    if(stock.length===0){ // recycle waste back to stock
+      stock = waste.reverse().map(c=>Object.assign({},c,{faceUp:false}));
+      waste = [];
+    } else {
+      const c = stock.pop(); c.faceUp = true; waste.push(c);
+    }
+    rebuildSelectable();
+  }
+
+  // Rebuild list of clickable/selectable targets in deterministic order
+  function rebuildSelectable(){
+    selectable = [];
+    // stock clickable
+    selectable.push({type:'stock'});
+    // waste top clickable if exists
+    if(waste.length>0) selectable.push({type:'waste'});
+    // foundations (clickable targets to click as destination)
+    for(let i=0;i<4;i++) selectable.push({type:'foundation',foundationIndex:i});
+    // face-up cards in piles: only top-most sequence starting at each face-up card is clickable
+    for(let pi=0;pi<7;pi++){
+      const p = piles[pi];
+      for(let ci=0;ci<p.length;ci++){
+        if(p[ci].faceUp){
+          selectable.push({type:'card',pileIndex:pi,cardIndex:ci});
+        }
+      }
+      // also allow clicking empty pile spots as destination
+      if(p.length===0) selectable.push({type:'pile',pileIndex:pi});
+    }
+    // keep selIndex within range
+    if(selIndex >= selectable.length) selIndex = selectable.length-1;
+    if(selIndex < 0) selIndex = 0;
+  }
+
+  // Render
+  function drawRoundedRect(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    // background table
+    ctx.fillStyle = '#124'; ctx.fillRect(0,0,W,H);
+
+    // draw stock slot
+    drawRoundedRect(stockX,stockY,cardW,cardH,6);
+    ctx.fillStyle = '#072'; ctx.fill();
+    ctx.save();
+    if(stock.length>0){
+      // back pattern
+      ctx.fillStyle = '#002b1a'; drawRoundedRect(stockX+4,stockY+4,cardW-8,cardH-8,5); ctx.fill();
+      ctx.fillStyle = '#99cc99'; ctx.font = `${Math.round(cardW*0.2)}px monospace`; ctx.textAlign='center'; ctx.fillText(String(stock.length), stockX+cardW/2, stockY+cardH/2+6);
+    }
+    ctx.restore();
+
+    // waste
+    drawRoundedRect(wasteX,wasteY,cardW,cardH,6); ctx.fillStyle='#072'; ctx.fill();
+    if(waste.length>0){ drawCard(waste[waste.length-1], wasteX, wasteY); }
+
+    // foundations
+    for(let i=0;i<4;i++){
+      const x = padding + (cardW+8)*(3+i);
+      drawRoundedRect(x,8,cardW,cardH,6); ctx.fillStyle='#072'; ctx.fill();
+      if(foundations[i].length>0) drawCard(foundations[i][foundations[i].length-1], x, 8);
+    }
+
+    // tableau piles
+    for(let i=0;i<7;i++){
+      const x = pileX(i);
+      // base slot
+      drawRoundedRect(x,tableY,cardW,cardH,6); ctx.fillStyle='#072'; ctx.fill();
+      const p = piles[i];
+      let y = tableY;
+      for(let j=0;j<p.length;j++){
+        const c = p[j];
+        if(c.faceUp) drawCard(c, x, y);
+        else drawCardBack(x,y);
+        y += Math.min(20, cardH*0.35);
+      }
+    }
+
+    // selection highlight
+    if(selectable.length>0){
+      const s = selectable[selIndex];
+      ctx.lineWidth = 3;
+      if(s.type==='stock') drawHighlight(stockX,stockY,cardW,cardH,'#39f');
+      else if(s.type==='waste') drawHighlight(wasteX,wasteY,cardW,cardH,'#39f');
+      else if(s.type==='foundation'){
+        const x = padding + (cardW+8)*(3+s.foundationIndex);
+        drawHighlight(x,8,cardW,cardH,'#39f');
+      } else if(s.type==='pile' && typeof s.pileIndex!=='undefined' && piles[s.pileIndex].length===0){
+        const x = pileX(s.pileIndex);
+        drawHighlight(x,tableY,cardW,cardH,'#39f');
+      } else if(s.type==='card'){
+        const x = pileX(s.pileIndex);
+        const p = piles[s.pileIndex];
+        // compute y for cardIndex
+        let y = tableY; for(let j=0;j<s.cardIndex;j++) y += Math.min(20, cardH*0.35);
+        drawHighlight(x,y,cardW,cardH,'#39f');
+      }
+    }
+
+    // glowing yellow when applicable
+    if(glowing && glowingCard){
+      const s = glowingCard;
+      ctx.lineWidth = 4;
+      if(s.type==='card'){
+        const x = pileX(s.pileIndex);
+        let y = tableY; for(let j=0;j<s.cardIndex;j++) y += Math.min(20, cardH*0.35);
+        drawHighlight(x,y,cardW,cardH,'#ff0');
+      } else if(s.type==='waste') drawHighlight(wasteX,wasteY,cardW,cardH,'#ff0');
+    }
+
+    // small status text
+    ctx.fillStyle = '#cfe'; ctx.font = '10px system-ui'; ctx.textAlign = 'left';
+    ctx.fillText('Solitaire - use wheel + click', 8, H-6);
+  }
+
+  function drawHighlight(x,y,w,h,color){
+    ctx.strokeStyle = color; drawRoundedRect(x-4,y-4,w+8,h+8,8); ctx.stroke();
+  }
+
+  function drawCard(c,x,y){
+    // card background
+    drawRoundedRect(x,y,cardW,cardH,6); ctx.fillStyle='#fff'; ctx.fill();
+    ctx.strokeStyle='#000'; ctx.lineWidth=1; ctx.stroke();
+    // rank and suit
+    ctx.fillStyle = COLORS[c.suit];
+    const fontSize = Math.max(10, Math.floor(cardW*0.22));
+    ctx.font = `${fontSize}px serif`;
+    ctx.textAlign='left'; ctx.fillText(RANKS[c.rank], x+6, y+fontSize+2);
+    ctx.textAlign='right'; ctx.fillText(c.suit, x+cardW-6, y+cardH-6);
+    // large centered suit
+    ctx.font = `${Math.floor(cardW*0.45)}px serif`;
+    ctx.textAlign='center'; ctx.fillText(c.suit, x+cardW/2, y+cardH/2+fontSize*0.18);
+  }
+  function drawCardBack(x,y){
+    drawRoundedRect(x,y,cardW,cardH,6); ctx.fillStyle='#026'; ctx.fill();
+    ctx.strokeStyle='#013'; ctx.stroke();
+    ctx.fillStyle='#09c'; ctx.font=`${Math.floor(cardW*0.32)}px monospace`; ctx.textAlign='center'; ctx.fillText('♠', x+cardW/2, y+cardH/2+6);
+  }
+
+  // Input handling
+  function cycleSelection(direction){
+    if(selectable.length===0) return;
+    selIndex = (selIndex + direction + selectable.length) % selectable.length;
+    lastScrollAt = Date.now();
+    glowing = false; glowingCard = null;
+    // restart timer
+    if(scrollTimer) clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(onScrollStop, 1000);
+    draw();
+  }
+
+  function onScrollStop(){
+    const s = selectable[selIndex];
+    lastScrollAt = Date.now();
+    // if card selected -> check possible destinations
+    if(s.type==='card'){
+      const dests = possibleDestinationsForCardAt(s.pileIndex, s.cardIndex);
+      if(dests.length===1){ moveFromPile(s.pileIndex, s.cardIndex, dests[0]); }
+      else if(dests.length>1){ glowing = true; glowingCard = s; }
+    } else if(s.type==='waste'){
+      const dests = possibleDestinationsForWaste();
+      if(dests.length===1) moveWasteTo(dests[0]);
+      else if(dests.length>1){ glowing = true; glowingCard = s; }
+    } else if(s.type==='foundation'){
+      // hovering over foundation - if there is any waste or selected card that can go only here, auto
+      // We'll check waste/top-cards that can go to this foundation uniquely
+      // Simpler: if selectable currently is a foundation and there is exactly one movable card that can go there, move it
+      const cand = [];
+      // check waste
+      const wdest = possibleDestinationsForWaste().filter(d=>d.type==='foundation' && d.foundationIndex===s.foundationIndex);
+      if(wdest.length>0) cand.push({from:'waste',dest:wdest[0]});
+      // check each top card of piles
+      for(let pi=0;pi<7;pi++){
+        const p = piles[pi];
+        if(p.length===0) continue;
+        const ci = p.findIndex(c=>c.faceUp); // first faceUp index
+        for(let j=ci;j<p.length;j++){
+          const c = p[j];
+          if(canPlaceOnFoundation(c,s.foundationIndex)) cand.push({from:'pile',pileIndex:pi,cardIndex:j,dest:{type:'foundation',foundationIndex:s.foundationIndex}});
+        }
+      }
+      if(cand.length===1){
+        const one=cand[0]; if(one.from==='waste') moveWasteTo(one.dest); else moveFromPile(one.pileIndex, one.cardIndex, one.dest);
+      } else if(cand.length>1){
+        // multiple options - glow the waste or all eligible cards
+        // For simplicity, we highlight waste if included else first
+        glowing = true; glowingCard = s; // user must click destination from selection
+      }
+    } else if(s.type==='stock'){
+      // stopping on stock does nothing automatically
+    } else if(s.type==='pile'){
+      // stopping on empty pile does nothing
+    }
+    draw();
+  }
+
+  canvas.addEventListener('wheel', (e)=>{
+    e.preventDefault();
+    const dir = e.deltaY>0?1:-1;
+    cycleSelection(dir);
+  }, {passive:false});
+
+  canvas.addEventListener('click', (e)=>{
+    const s = selectable[selIndex];
+    if(!s) return;
+    // If glowing and user clicks a destination (foundation or pile or waste) try to move
+    if(glowing){
+      // If glowingCard is a card or waste, clicking a destination that is valid will move
+      // If glowingCard is a foundation (user hovered over foundation with multiple candidates), clicking a candidate card should perform move
+      if(s.type==='foundation' || s.type==='pile'){ // treat as destination
+        // determine source
+        if(glowingCard.type==='card'){
+          const src = glowingCard; const dest = s;
+          // convert dest to canonical dest object for move functions
+          const destObj = (s.type==='foundation')?{type:'foundation',foundationIndex:s.foundationIndex}:{type:'pile',pileIndex:s.pileIndex};
+          moveFromPile(src.pileIndex, src.cardIndex, destObj);
+        } else if(glowingCard.type==='waste'){
+          const destObj = (s.type==='foundation')?{type:'foundation',foundationIndex:s.foundationIndex}:{type:'pile',pileIndex:s.pileIndex};
+          // check validity before moving
+          const dests = possibleDestinationsForWaste().filter(d=>{ if(destObj.type==='foundation') return d.type==='foundation' && d.foundationIndex===destObj.foundationIndex; return d.type==='pile' && d.pileIndex===destObj.pileIndex; });
+          if(dests.length>0) moveWasteTo(dests[0]);
+        } else if(glowingCard.type==='foundation'){
+          // user clicked some card to move to that foundation
+          // if clicked a card in selectable and it can move to glowingCard.foundationIndex, do it
+          if(s.type==='card'){
+            const destObj = {type:'foundation',foundationIndex:glowingCard.foundationIndex};
+            // check card can go
+            if(canPlaceOnFoundation(piles[s.pileIndex][s.cardIndex], destObj.foundationIndex)) moveFromPile(s.pileIndex, s.cardIndex, destObj);
+          } else if(s.type==='waste'){
+            const destObj = {type:'foundation',foundationIndex:glowingCard.foundationIndex};
+            const dests = possibleDestinationsForWaste().filter(d=>d.type==='foundation' && d.foundationIndex===destObj.foundationIndex);
+            if(dests.length>0) moveWasteTo(dests[0]);
+          }
+        }
+        glowing = false; glowingCard = null; rebuildSelectable(); draw();
+        return;
+      }
+      // if glowing and clicked somewhere else, cancel
+      glowing=false; glowingCard=null; draw(); return;
+    }
+
+    // Not glowing: clicking on stock deals; clicking on a selectable card could optionally pick it up if single destination?
+    if(s.type==='stock'){ dealFromStock(); draw(); return; }
+    if(s.type==='waste'){
+      // try move waste automatically when clicked: if unique destination, move; if multiple, glow
+      const dests = possibleDestinationsForWaste();
+      if(dests.length===1) moveWasteTo(dests[0]);
+      else if(dests.length>1){ glowing=true; glowingCard=s; }
+      draw(); return;
+    }
+    if(s.type==='card'){
+      // clicking a card: check dests
+      const dests = possibleDestinationsForCardAt(s.pileIndex, s.cardIndex);
+      if(dests.length===1){ moveFromPile(s.pileIndex, s.cardIndex, dests[0]); }
+      else if(dests.length>1){ glowing=true; glowingCard=s; }
+      draw(); return;
+    }
+    if(s.type==='foundation'){
+      // clicked on foundation: try to auto-move if single candidate
+      const fake = s; onScrollStop(); return;
+    }
+    if(s.type==='pile'){
+      // empty pile clicked - nothing unless in glowing mode
+      draw(); return;
+    }
+  });
+
+  // initial deal
+  dealNew();
+  draw();
+
+  // expose reset on reload only
+  window.addEventListener('keydown', (e)=>{ if(e.key==='r') { dealNew(); draw(); } });
+
+})();
+</script>
+</body>
+</html>

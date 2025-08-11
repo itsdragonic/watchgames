@@ -54,12 +54,12 @@
 
     #backboard {
         position: fixed;
-        width: 320px;
-        height: 400px;
+        width: 330px;
+        height: 450px;
         background: #000;
         top: 50%;
         left: 50%;
-        transform: translate(-50%, calc(-50% - 45px));
+        transform: translate(calc(-50%), calc(-50% - 55px));
         transition: transform 0.2s ease-in-out;
     }
 
@@ -249,6 +249,7 @@
   }
   
   // Handle app item click events (redirect to different websites)
+  // Handle app item click events (redirect to different websites)
   appItems.forEach((app, index) => {
       app.addEventListener('click', () => {
           const urls = [
@@ -261,7 +262,7 @@
               'https://www.example.com/7',
               'games/debug.html'
           ];
-          window.location.href = urls[index];
+          window.open(urls[index], '_blank');  // This will open in a new tab
       });
   });
 
