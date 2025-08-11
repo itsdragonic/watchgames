@@ -249,7 +249,6 @@
   }
   
   // Handle app item click events (redirect to different websites)
-  // Handle app item click events (redirect to different websites)
   appItems.forEach((app, index) => {
       app.addEventListener('click', () => {
           const urls = [
@@ -262,7 +261,7 @@
               'https://www.example.com/7',
               'games/debug.html'
           ];
-          window.open(urls[index], '_blank');  // This will open in a new tab
+          window.location.href = urls[index];
       });
   });
 
